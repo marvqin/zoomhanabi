@@ -142,7 +142,7 @@ class ServerRoom {
         shouldAdd = false;
         return;
       }
-      if (cp.name == name.slice(0,8)) {
+      if (cp.name == name) {
         shouldAdd = false;
         if (cp.socket == undefined) {
           cp.socket = socket;
@@ -165,7 +165,7 @@ class ServerRoom {
         return;
       }
       if (cp.socket && cp.socket.id == socket.id) {
-        cp.name = name;
+        cp.name = name.slice(0,8);
         shouldAdd = false;
       }
 
