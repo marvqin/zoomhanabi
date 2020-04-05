@@ -165,6 +165,7 @@ class ServerRoom {
       }
       if (cp.socket && cp.socket.name == name) {
         this.notifyMain(socket, "name taken you idiots");
+        shouldAdd = false;
       }
     }
 
