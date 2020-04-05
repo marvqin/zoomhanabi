@@ -132,6 +132,7 @@ class ServerRoom {
     this.emit()
   }
   setName(socket, name) {
+    if (!name) return;
     // console.log(socket.id)
     var shouldAdd = true;
     for (var cp of this.playing) {
