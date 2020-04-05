@@ -10,5 +10,6 @@
   "type": "module",
   "engines": {
     "node":"13.x"
-  }
+  },
+  "scripts": "index.js"
 }
