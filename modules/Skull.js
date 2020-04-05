@@ -81,6 +81,9 @@ class ServerSkull {
     // }.bind(this));
     this.startRound(0);
   }
+  getSocket(i) {
+    return this.players[i].socket;
+  }
   getIndex(socket) {
     for (var i=0; i < this.players.length; i++) {
       if (this.players[i].socket.id == socket.id) return i;
@@ -157,8 +160,9 @@ class ServerSkull {
         this.informTurn();
       }
       this.emit();
+    } else {
+    this.room.notifyMain(this.getSocket(i), "cut the crap");
     }
-    this.notifyMain("cut the crap")
 
   }
   canBid(i, amount) {
@@ -188,7 +192,7 @@ class ServerSkull {
     }
   }
   canFold(i) {
-    if (!this.round.isCurrentPlayer(i)) this.notifyMain("not your turn fool")
+    if (!this.round.isCurrentPlayer(i)) this.room.notifyMain(getSocket(i), "not your turn fool");
     return (this.round.isCurrentPlayer(i) && this.round.phase == "bidding");
   }
   fold(i) {
