@@ -159,14 +159,16 @@ class ServerRoom {
     }
 
     for (var cp of this.watching) {
+      if (cp.socket && cp.socket.name == name) {
+        this.notifyMain(socket, "name taken you idiots");
+        shouldAdd = false;
+        return;
+      }
       if (cp.socket && cp.socket.id == socket.id) {
         cp.name = name;
         shouldAdd = false;
       }
-      if (cp.socket && cp.socket.name == name) {
-        this.notifyMain(socket, "name taken you idiots");
-        shouldAdd = false;
-      }
+
     }
 
     if (shouldAdd) {
