@@ -7,5 +7,8 @@
     "jquery.terminal": "^2.15.2",
     "socket.io": "^2.3.0"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node":"13.x"
+  }
 }
