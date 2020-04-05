@@ -228,6 +228,7 @@ class ServerSkull {
     }
   }
   nextPlayer() {
+    if (this.round.phase == "initial") return;
     var origIndex = this.round.cpIndex;
     for (var i=0; i < this.n; i++) {
       this.round.cpIndex += 1;

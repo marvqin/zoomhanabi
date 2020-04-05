@@ -115,6 +115,7 @@ class ServerRoom {
     }
   }
   ready(socket) {
+    if (this.game) return;
     const id = socket.id;
     for (var i = this.watching.length - 1; i >= 0; i--) {
       if (this.watching[i].socket.id == id) {
@@ -161,6 +162,9 @@ class ServerRoom {
       if (cp.socket && cp.socket.id == socket.id) {
         cp.name = name;
         shouldAdd = false;
+      }
+      if (cp.socket && cp.socket.name == name) {
+        this.notifyMain(socket, "name taken you idiots");
       }
     }
 
