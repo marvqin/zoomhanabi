@@ -43,7 +43,7 @@ class ServerRoom {
       this.ready(socket);
     }
     if (event == "name") {
-      console.log("calling name: ", data[1])
+      // console.log("calling name: ", data[1])
       this.setName(socket, data[1])
     }
     if (event == "kwalexadmin") {
@@ -146,36 +146,33 @@ class ServerRoom {
         shouldAdd = false;
         if (cp.socket == undefined) {
           cp.socket = socket;
-          shouldAdd = false;
-          break;
+
         } else {
-          this.notifyMain(socket, "name taken");
-          shouldAdd = false;
+          this.notifyMain(socket, "name taken you idiots");
         }
-        // } else if (cp.socket.id == socket.id) {
-        //   // cp.name = name; // disallow name change during playing
-        //   shouldAdd = false;
-        // }
+        return;
       }
     }
 
     for (var cp of this.watching) {
-      if (cp.socket && cp.name == name) {
-        this.notifyMain(socket, "name taken you idiots");
+      if (cp.name == name) {
+        this.notifyMain(socket, "someone alredy got that one");
         shouldAdd = false;
         return;
       }
       if (cp.socket && cp.socket.id == socket.id) {
         cp.name = name.slice(0,8);
+        this.emit();
         shouldAdd = false;
+        return;
       }
 
     }
 
     if (shouldAdd) {
       this.watching.push(new Player(name.slice(0,8), socket));
+      this.emit()
     }
-    this.emit()
   }
   // addPlayer(p) {
   //   var rejoined = false;
