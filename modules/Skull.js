@@ -156,8 +156,10 @@ class ServerSkull {
         this.round.phase = "turns";
         this.informTurn();
       }
+      this.emit();
     }
-    this.emit();
+    this.notifyMain("cut the crap")
+
   }
   canBid(i, amount) {
     console.log("canBid: ", i, amount);
@@ -186,6 +188,7 @@ class ServerSkull {
     }
   }
   canFold(i) {
+    if (!this.round.isCurrentPlayer(i)) this.notifyMain("not your turn fool")
     return (this.round.isCurrentPlayer(i) && this.round.phase == "bidding");
   }
   fold(i) {
