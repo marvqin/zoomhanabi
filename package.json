@@ -12,6 +12,6 @@
     "node":"13.x"
   },
   "scripts": {
-    "start":"index.js"
+    "start":"./index.js"
   }
 }
