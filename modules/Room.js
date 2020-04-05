@@ -150,6 +150,7 @@ class ServerRoom {
           break;
         } else {
           this.notifyMain(socket, "name taken");
+          shouldAdd = false;
         }
         // } else if (cp.socket.id == socket.id) {
         //   // cp.name = name; // disallow name change during playing
