@@ -12,7 +12,6 @@ import {ServerRoom} from "./modules/Room.js"
 // import {Server} from "./modules/Server.js"
 
 // var ServerRoom = require('./Room').ServerRoom;
-// var Player = require('./Player').Player;
 
 
 
