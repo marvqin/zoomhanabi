@@ -115,13 +115,17 @@ class ServerRoom {
     }
   }
   ready(socket) {
-    if (this.game) return;
     const id = socket.id;
     for (var i = this.watching.length - 1; i >= 0; i--) {
       if (this.watching[i].socket.id == id) {
-        console.log("ready: ", id, this.watching.length)
-        this.playing.push(this.watching[i])
-        this.watching.splice(i,1)
+        if (this.game) {
+          this.notifyMain(socket, "Wait for the current game to end.");
+          return;
+        } else {
+          console.log("ready: ", id, this.watching.length)
+          this.playing.push(this.watching[i])
+          this.watching.splice(i,1)
+        }
       }
     }
     for (var i = 0; i < this.playing.length; i++) {

@@ -339,6 +339,10 @@ class ServerSkull {
     for (var cp of this.round.players) {
       roundNames.push(cp.name)
     }
+    const hLengths = [];
+    for (var i=0; i < this.players.length; i++) {
+      hLengths.push(this.hands[i].length)
+    }
     var r = this.round;
     var ret = {}
     ret["pN"] = pNames;
@@ -355,6 +359,7 @@ class ServerSkull {
     ret["nCards"] = r.nCards;
     ret["guessIndex"] = r.guessIndex;
     ret["cg"] = r.correctGuesses;
+    ret["hLengths"] = hLengths;
     // ret["hands"] = this.hands;
     // ret = [pNames, this.points, this.available, roundNames, r.phase, r.cpIndex, r.status, r.cards, r.bids, r.cBid, r.nCards, r.guessIndex]
     return ret;
@@ -445,20 +450,20 @@ class ClientSkull {
     rt.echo(`cP: ${d["cp"]}`);
     rt.echo(`${d["cg"]}/${d["cBid"]} guesses`);
     rt.echo("\n");
-    const rNames = d["rN"];
-    for (var i=0; i < rNames.length; i++) {
+    const pNames = d["pN"];
+    for (var i=0; i < pNames.length; i++) {
       var isTurn;
       if (d["cp"] == i) isTurn = "*";
       else isTurn = " ";
-      var s = isTurn + rNames[i].padStart(8, " ") + ": " + d["pStrs"][i];
-      // var s = isTurn + rNames[i].padStart(8, " ") + ": " + "C".repeat(d["cards"][i].length);
+      var s = isTurn + pNames[i].padStart(8, " ") + ": " + d["pStrs"][i];
+      // var s = isTurn + pNames[i].padStart(8, " ") + ": " + "C".repeat(d["cards"][i].length);
       if (d["bids"][i] != 0 && d["status"][i]) {s += d["bids"][i];}
       else if (!d["status"][i]) {s += "-";}
       rt.echo(s);
     }
     rt.echo("\n\n********\n\n");
-    for (var i=0; i < rNames.length; i++) {
-      var s = rNames[i].padStart(8, " ") + ": " + `${d["hands"][i].length} cards, ${d["pts"][i]} points`;
+    for (var i=0; i < pNames.length; i++) {
+      var s = pNames[i].padStart(9, " ") + ": " + `${d["hLengths"][i]} cards, ${d["pts"][i]} points`;
       rt.echo(s);
     }
     // rt.echo(d["phase"]);
