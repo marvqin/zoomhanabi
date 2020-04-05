@@ -142,7 +142,7 @@ class ServerRoom {
         shouldAdd = false;
         return;
       }
-      if (cp.name == name) {
+      if (cp.name == name.slice(0,8)) {
         shouldAdd = false;
         if (cp.socket == undefined) {
           cp.socket = socket;
@@ -159,7 +159,7 @@ class ServerRoom {
     }
 
     for (var cp of this.watching) {
-      if (cp.socket && cp.socket.name == name) {
+      if (cp.socket && cp.name == name) {
         this.notifyMain(socket, "name taken you idiots");
         shouldAdd = false;
         return;
