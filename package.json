@@ -9,9 +9,9 @@
   },
   "type": "module",
   "engines": {
-    "node":"13.x"
+    "node": "13.x"
   },
   "scripts": {
-    "start":"./index.js"
+    "start": "node index.js"
   }
 }
