@@ -242,7 +242,8 @@ class ServerSkull {
       if (this.round.cpIndex == this.n) {
         this.round.cpIndex = 0;
       }
-      if (this.round.isAlive[i] && this.round.status[i]) {
+      const cpi = this.round.cpIndex;
+      if (this.round.isAlive[cpi] && this.round.status[cpi]) {
         break;
       }
     }
@@ -342,8 +343,8 @@ class ServerSkull {
     var ret = {}
     ret["pN"] = pNames;
     ret["pts"] = this.points;
-    ret["av"] = this.available;
-    ret["rN"] = roundNames;
+    // ret["av"] = this.available;
+    // ret["rN"] = roundNames;
     ret["phase"] = r.phase;
     ret["cp"] = r.cpIndex;
     ret["status"] = r.status;
@@ -354,7 +355,7 @@ class ServerSkull {
     ret["nCards"] = r.nCards;
     ret["guessIndex"] = r.guessIndex;
     ret["cg"] = r.correctGuesses;
-    ret["hands"] = this.hands;
+    // ret["hands"] = this.hands;
     // ret = [pNames, this.points, this.available, roundNames, r.phase, r.cpIndex, r.status, r.cards, r.bids, r.cBid, r.nCards, r.guessIndex]
     return ret;
   }
