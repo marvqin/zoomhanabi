@@ -1,0 +1,11 @@
+{
+  "name": "skull",
+  "version": "0.0.1",
+  "description": "noskull",
+  "dependencies": {
+    "express": "^4.17.1",
+    "jquery.terminal": "^2.15.2",
+    "socket.io": "^2.3.0"
+  },
+  "type": "module"
+}
