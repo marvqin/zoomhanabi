@@ -275,7 +275,10 @@ class ClientRoom {
   activate() {
     // this.termMain.push(this.termHandler.bind(this));
     this.termMain.term.set_interpreter(this.termHandler.bind(this));
-    this.termMain.term.set_prompt("Room> ")
+    this.termMain.term.set_prompt("Room> ");
+    this.termMain.term.focus(true);
+    this.termRoom.term.pause();
+    this.termSide.term.pause();
   }
   deactivate() {
     // this.termMain.pop();
@@ -341,7 +344,7 @@ class ClientRoom {
   }
   updateDisplay(data) {
     // console.log(data)
-    this.termRoom.clear()
+    this.termRoom.term.clear()
     this.termRoom.echo("Waiting: " + data.watching.join(", "));
     this.termRoom.echo("Playing: " + data.playing.join(", "));
   }
