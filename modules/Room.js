@@ -274,8 +274,8 @@ class ClientRoom {
   }
   activate() {
     // this.termMain.push(this.termHandler.bind(this));
-    this.termMain.set_interpreter(this.termHandler.bind(this));
-    this.termMain.set_prompt("Room> ")
+    this.termMain.term.set_interpreter(this.termHandler.bind(this));
+    this.termMain.term.set_prompt("Room> ")
   }
   deactivate() {
     // this.termMain.pop();
@@ -297,6 +297,10 @@ class ClientRoom {
       this.socket.removeAllListeners(this.game.ev);
       this.game = undefined;
       this.activate();
+    }
+    if (event == "endRound") {
+      this.termMain.echo("New round starting: ");
+      this.termMain.countdown(5);
     }
     if (event == "notifyMain") {
       this.termMain.echo(data[1])
@@ -329,6 +333,8 @@ class ClientRoom {
       this.socket.emit(this.ev, "play")
     } else if (p.name == "kwalexadmin") {
       this.socket.emit(this.ev, p.name, p.args[0])
+    } else if (p.name == "timer") {
+      this.termMain.countdown(3);
     }
     // term.echo("handler",command)
     // this.term.echo("more")

@@ -27,6 +27,7 @@
   <script type="module">
   // import {Client} from "./modules/Client.js"
   import {ClientRoom} from "./modules/Room.js";
+  import {Terminal} from "./modules/Terminal.js";
   var socket = io();
   var SC = undefined;
   // var socket = io.connect('http://localhost:3000');
@@ -46,12 +47,16 @@
     // console.log(t1.constructor.parse_command)
     var termRoom = $('#room').terminal(undefined, {greetings:false});
     termRoom.__T__ = $.terminal;
+    var TRoom = new Terminal(termRoom);
     var termMain = $('#main').terminal(undefined, {greetings:false});
     termMain.__T__ = $.terminal;
+    var TMain = new Terminal(termMain);
     var termSide = $('#side').terminal(undefined, {greetings:false});
     termSide.__T__ = $.terminal;
+    var TSide = new Terminal(termSide);
 
-    SC = new ClientRoom(socket, termMain, termRoom, termSide);
+
+    SC = new ClientRoom(socket, TMain, termRoom, TSide);
 
     // var room = new ClientRoom(t1, socket)
     // var tmain = $('#main').terminal(undefined, {greetings:false});

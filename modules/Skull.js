@@ -129,6 +129,7 @@ class ServerSkull {
     //   }
     // }
     this.round = new Round(this.players, sp, availables, this.isAlive);
+    this.emit();
     this.informInitial();
   }
   canPlay(i, card) {
@@ -295,7 +296,8 @@ class ServerSkull {
       if (this.points[i] == 2) {
         this.endGame(i);
       }
-      this.startRound(i);
+      setTimeout(this.startRound.bind(this, i), 6000);
+      // this.startRound(i);
     }
     if (!outcome) {
       const r = Math.floor(Math.random() * this.hands[i].length);
@@ -303,7 +305,8 @@ class ServerSkull {
       if (this.hands[i].length == 0) {
         this.isAlive[i] = false;
       }
-      this.startRound(sp);
+      setTimeout(this.startRound.bind(this, sp), 6000);
+      // this.startRound(sp);
     }
 
   }
@@ -380,7 +383,7 @@ class ClientSkull {
     this.termSide = termSide;
     // this.socket.on("display", this.updateDisplay.bind(this));
     this.activate();
-    console.log("skull active", termMain)
+    // console.log("skull active", termMain)
     // this.requestDisplay();
   }
   ioHandler(...data) {
@@ -394,13 +397,14 @@ class ClientSkull {
       this.termMain.echo("Initial phase, play a card. available: " + JSON.stringify(data[2]));
     }
     if (ev == "display") {
-      this.updateDisplay(data[1])
+      this.updateDisplay(data[1]);
     }
     if (ev == "yourGuess") {
       this.termMain.echo("Your turn to guess.");
     }
     if (ev == "endRound") {
-      this.termMain.clear();
+      this.termMain.term.clear();
+      this.termSide.countdown(5);
     }
 
   }
@@ -410,8 +414,8 @@ class ClientSkull {
   activate() {
     // super.activate();
     // this.termMain.push(this.termHandler.bind(this));
-    this.termMain.set_interpreter(this.termHandler.bind(this));
-    this.termMain.set_prompt("skull> ");
+    this.termMain.term.set_interpreter(this.termHandler.bind(this));
+    this.termMain.term.set_prompt("skull> ");
   }
   deactivate() {
     // this.termMain.pop();
@@ -440,7 +444,7 @@ class ClientSkull {
   }
   updateDisplay(d) {
     console.log(d)
-    var rt = this.termSide;
+    var rt = this.termSide.term;
     rt.clear();
     // const s1 = `Phase: ${d["phase"]}, cBid: ${d["cBid"]}, cP: ${d["cp"]}, `;
     // rt.echo(s1);
