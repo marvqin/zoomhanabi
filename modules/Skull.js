@@ -193,7 +193,7 @@ class ServerSkull {
     }
   }
   canFold(i) {
-    if (!this.round.isCurrentPlayer(i)) this.room.notifyMain(getSocket(i), "not your turn fool");
+    if (!this.round.isCurrentPlayer(i)) this.room.notifyMain(this.getSocket(i), "not your turn fool");
     return (this.round.isCurrentPlayer(i) && this.round.phase == "bidding");
   }
   fold(i) {
