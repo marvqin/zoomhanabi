@@ -470,6 +470,7 @@ class ClientSkull {
       var s = pNames[i].padStart(9, " ") + ": " + `${d["hLengths"][i]} cards, ${d["pts"][i]} points`;
       rt.echo(s);
     }
+    rt.echo(".")
     // rt.echo(d["phase"]);
     // rt.echo(d["cBid"]);
   }
