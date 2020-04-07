@@ -99,7 +99,7 @@ class ServerSkull {
         this.play(i, data[1]);
       }
       if (ev == "bid") {
-        this.bid(i, Number(data[1]))
+        this.bid(i, Math.round(Number(data[1])))
       }
       if (ev == "fold") {
         this.fold(i)
