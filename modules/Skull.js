@@ -417,23 +417,23 @@ class ClientSkull {
     // this.termMain.pop();
   }
   termHandler(command, term) {
-    console.log("clientskulltermHandler: ", command)
-    var p = term.__T__.parse_command(command)
-    console.log(p)
-    if (p.name == "rose") {
+    const sc = command.slice(0, 256);
+    console.log("clientskulltermHandler: ", sc)
+    var p = term.__T__.parse_command(sc)
+    // console.log(p)
+    const c = p.name;
+    if (c == "rose" || c == "r") {
       this.socket.emit(this.ev, "play", "rose");
-    }
-    if (p.name == "skull") {
+    } else if (c == "skull" || c == "s") {
       this.socket.emit(this.ev, "play", "skull");
-    }
-    if (p.name == "bid") {
+    } else if (c == "bid") {
       this.socket.emit(this.ev, "bid", p.args[0]);
-    }
-    if (p.name == "fold") {
+    } else if (c == "fold") {
       this.socket.emit(this.ev, "fold");
-    }
-    if (p.name == "guess") {
+    } else if (c == "guess") {
       this.socket.emit(this.ev, "guess", p.args[0]);
+    } else {
+      term.echo("bad command");
     }
     // term.echo("handler",command)
     // this.term.echo("more")

@@ -138,8 +138,26 @@ class ServerRoom {
   }
   setName(socket, name) {
     if (!name) return;
-    // console.log(socket.id)
     var shouldAdd = true;
+    var pWatching;
+    var pPlaying;
+    for (var cp of this.watching) {
+      if (cp.name == name) {
+        this.notifyMain(socket, "someone already got that one");
+        shouldAdd = false;
+        return;
+      }
+      if (cp.socket && cp.socket.id == socket.id) {
+        pWatching = cp;
+        shouldAdd = false;
+        // cp.name = name.slice(0,8);
+        // this.emit();
+        // shouldAdd = false;
+        // return;
+      }
+
+    }
+
     for (var cp of this.playing) {
       if (cp.socket && (cp.socket.id == socket.id)) {
         this.notifyMain(socket, "can't change it now");
@@ -149,34 +167,33 @@ class ServerRoom {
       if (cp.name == name) {
         shouldAdd = false;
         if (cp.socket == undefined) {
-          cp.socket = socket;
-
+          pPlaying = cp;
+          // cp.socket = socket;
+          // this.notifyMain(socket, "logging back in as: " + name)
         } else {
           this.notifyMain(socket, "name taken you idiots");
+          return;
         }
-        return;
       }
     }
 
-    for (var cp of this.watching) {
-      if (cp.name == name) {
-        this.notifyMain(socket, "someone alredy got that one");
-        shouldAdd = false;
-        return;
-      }
-      if (cp.socket && cp.socket.id == socket.id) {
-        cp.name = name.slice(0,8);
-        this.emit();
-        shouldAdd = false;
-        return;
-      }
-
+    const nn = name.slice(0,8);
+    if (!pWatching && !pPlaying) {
+      this.watching.push(new Player(nn, socket));
+      this.notifyMain(socket, "logged in as: " + nn);
+      this.emit();
+    } else if (pWatching && !pPlaying) {
+      pWatching.name = nn;
+      this.notifyMain(socket, "name changed to: " + nn);
+      this.emit();
+    } else if (!pWatching && pPlaying) {
+      pPlaying.socket = socket;
+      this.notifyMain(socket, "logging back in as: " + name);
     }
-
-    if (shouldAdd) {
-      this.watching.push(new Player(name.slice(0,8), socket));
-      this.emit()
-    }
+    // if (shouldAdd) {
+    //   this.watching.push(new Player(name.slice(0,8), socket));
+    //   this.emit()
+    // }
   }
   // addPlayer(p) {
   //   var rejoined = false;
