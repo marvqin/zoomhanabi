@@ -168,7 +168,7 @@ class ServerSkull {
   }
   canBid(i, amount) {
     console.log("canBid: ", i, amount);
-    if (isNaN(amount) || amount < 0 || amount > this.round.nCards) {
+    if (isNaN(amount) || amount <= 0 || amount > this.round.nCards) {
       return false;
     }
     if (this.round.phase == "initial") {
