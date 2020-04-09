@@ -262,6 +262,24 @@ class ClientRoom {
     this.termSide = termSide;
     // this.startGame = startGame;
     // this.socket = socket;
+
+    // this.termMain.addCommand("room", "name", function(name) {
+    //   this.emit("name", name);
+    // }.bind(this));
+    this.termMain.addCommand("room", "name", this.emit.bind(this, "name"));
+    this.termMain.addCommand("room", "play", this.emit.bind(this, "play"));
+    this.termMain.addCommand("room", "kwalexadmin", this.emit.bind(this, "kwalexadmin"));
+    // this.termMain.addCommand("room", "play", function() {
+    //   this.emit("play");
+    // }.bind(this));
+    // this.termMain.addCommand("room", "kwalexadmin", function(game) {
+    //   this.emit("kwalexadmin", game);
+    // }.bind(this));
+    // this.termRoom.addCommand("name", p => this.emit("name", p.args[0]));
+    // this.termRoom.addCommand("play", p => this.emit("play"));
+
+
+
     this.activate();
     this.socket.on(this.ev, this.ioHandler.bind(this, this.socket));
     // this.socket.on("display", this.updateDisplay.bind(this));
@@ -272,9 +290,13 @@ class ClientRoom {
     // term.name = "Room"
     // term.settings().greetings = "Room"
   }
+  emit(...data) {
+    this.socket.emit(this.ev, ...data);
+  }
   activate() {
     // this.termMain.push(this.termHandler.bind(this));
-    this.termMain.term.set_interpreter(this.termHandler.bind(this));
+    // this.termMain.term.set_interpreter(this.termHandler.bind(this));
+    this.termMain.mode = "room"
     this.termMain.term.set_prompt("Room> ");
     this.termMain.term.focus(true);
     this.termRoom.term.pause();
@@ -319,29 +341,23 @@ class ClientRoom {
     this.game.updateDisplay(emitData)
     this.socket.on(this.game.ev, this.game.ioHandler.bind(this.game))
   }
-  // activate() {
-  //   super.activate()
-  //   this.termMain.push(this.termHandler.bind(this));
+
+  // termHandler(command, term) {
+  //   // console.log("termHandler: ", command)
+  //   var p = term.__T__.parse_command(command)
+  //   // console.log(p)
+  //   if (p.name == "name") {
+  //     this.socket.emit(this.ev, "name", p.args[0])
+  //   } else if (p.name == "play") {
+  //     this.socket.emit(this.ev, "play")
+  //   } else if (p.name == "kwalexadmin") {
+  //     this.socket.emit(this.ev, p.name, p.args[0])
+  //   } else if (p.name == "timer") {
+  //     this.termMain.countdown(3);
+  //   }
+  //   // term.echo("handler",command)
+  //   // this.term.echo("more")
   // }
-  // deactivate() {
-  //   this.termMain.pop()
-  // }
-  termHandler(command, term) {
-    // console.log("termHandler: ", command)
-    var p = term.__T__.parse_command(command)
-    // console.log(p)
-    if (p.name == "name") {
-      this.socket.emit(this.ev, "name", p.args[0])
-    } else if (p.name == "play") {
-      this.socket.emit(this.ev, "play")
-    } else if (p.name == "kwalexadmin") {
-      this.socket.emit(this.ev, p.name, p.args[0])
-    } else if (p.name == "timer") {
-      this.termMain.countdown(3);
-    }
-    // term.echo("handler",command)
-    // this.term.echo("more")
-  }
   updateDisplay(data) {
     // console.log(data)
     this.termRoom.term.clear()

@@ -381,6 +381,12 @@ class ClientSkull {
     this.ev = "skull";
     this.termMain = termMain;
     this.termSide = termSide;
+
+    this.termMain.addCommand("skull", ["rose", "r"], this.emit.bind(this, "play", "rose"));
+    this.termMain.addCommand("skull", ["skull", "s"], this.emit.bind(this, "play", "skull"));
+    this.termMain.addCommand("skull", ["bid", "b"], this.emit.bind(this, "bid"));
+    this.termMain.addCommand("skull", ["fold", "f"], this.emit.bind(this, "fold"));
+    this.termMain.addCommand("skull", ["guess", "g"], this.emit.bind(this, "guess"));
     // this.socket.on("display", this.updateDisplay.bind(this));
     this.activate();
     // console.log("skull active", termMain)
@@ -411,10 +417,15 @@ class ClientSkull {
   // requestDisplay() {
   //   this.socket.emit(this.eventName, "requestDisplay");
   // }
+  emit(...data) {
+    this.socket.emit(this.ev, ...data);
+  }
   activate() {
     // super.activate();
     // this.termMain.push(this.termHandler.bind(this));
-    this.termMain.term.set_interpreter(this.termHandler.bind(this));
+    // this.termMain.term.set_interpreter(this.termHandler.bind(this));
+    // this.termMain.term.set_prompt("skull> ");
+    this.termMain.mode = "skull"
     this.termMain.term.set_prompt("skull> ");
   }
   deactivate() {
