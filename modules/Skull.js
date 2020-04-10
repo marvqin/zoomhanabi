@@ -5,7 +5,7 @@ class ShotClock {
     this.skullServer = skullServer;
     this.handle = undefined;
     this.playerIndex = undefined;
-    this.maxTime = 24000; // ms
+    this.maxTime = 5000; // ms
   }
   reset(playerIndex) {
     if (this.handle != undefined) clearTimeout(this.handle)
@@ -98,6 +98,8 @@ class ServerSkull {
     this.points = [];
     this.isAlive = [];
     // this.onEnd = onEnd;
+
+    this.shotClock = new ShotClock(this);
 
     for (var cp of this.players) {
       this.hands.push(["skull", "rose", "rose", "rose"]);
@@ -324,7 +326,7 @@ class ServerSkull {
     }
 
     var cp = this.round.cpIndex;
-    for (var i=0; i < this.round.cards[cp].length; i++) {
+    for (var i=0; i < this.round.cards[cp].length && i < this.round.cBid; i++) {
       this.guess(cp, this.round.players[cp].name);
     }
 
