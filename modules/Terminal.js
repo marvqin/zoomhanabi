@@ -23,6 +23,8 @@ class Terminal {
     this.mode = undefined;
 
     this.term.set_interpreter(this.handler.bind(this));
+
+    this.countDownIntervalHandle = undefined;
   }
   echo(s) {
     this.term.echo(s)
@@ -30,14 +32,37 @@ class Terminal {
   countdown(n) {
     this.timerN = n;
     this.term.echo(n);
+    if (this.countDownIntervalHandle != undefined) window.clearInterval(this.countDownIntervalHandle);
     const fn = function() {
       // console.log(fn, this.timerN)
       this.timerN -= 1;
-      if (this.timerN <= 0) window.clearInterval(this.intervalHandle)
+      if (this.timerN <= 0) window.clearInterval(this.countDownIntervalHandle)
       this.term.update(-1, this.timerN)
     }.bind(this);
     console.log("setting timer")
-    this.intervalHandle = window.setInterval(fn, 1000)
+    this.countDownIntervalHandle = window.setInterval(fn, 1000)
+  }
+  promptCountdown(n) {
+    this.promptTimerN = n;
+    const cp = this.term.get_prompt();
+    console.log(cp)
+    this.term.set_prompt(cp + this.promptTimerN.toString() + ": ");
+    console.log(cp + this.promptTimerN.toString() + ": ")
+    if (this.promptCountDownIntervalHandle != undefined) window.clearInterval(this.promptCountDownIntervalHandle);
+    const fn = function() {
+      // console.log(fn, this.promptTimerN)
+      this.promptTimerN -= 1;
+      this.term.set_prompt(cp + this.promptTimerN.toString() + ": ");
+      if (this.promptTimerN <= 0) {
+        this.term.set_prompt(cp);
+        window.clearInterval(this.promptCountDownIntervalHandle)
+        return;
+      }
+
+      // this.term.update(-1, this.promptTimerN)
+    }.bind(this);
+    console.log("setting timer")
+    this.promptCountDownIntervalHandle = window.setInterval(fn, 1000)
   }
   addCommand(mode, command, fn) {
     if (this.cDict[mode] == undefined) this.cDict[mode] = [];
