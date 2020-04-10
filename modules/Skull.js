@@ -1,5 +1,46 @@
 // import {ServerModule, ClientModule} from "./Module.js"
 
+class ShotClock {
+  constructor(skullServer) {
+    this.skullServer = skullServer;
+    this.handle = undefined;
+    this.playerIndex = undefined;
+    this.maxTime = 24000; // ms
+  }
+  reset(playerIndex) {
+    if (this.handle != undefined) clearTimeout(this.handle)
+    this.playerIndex = playerIndex
+    this.handle = setTimeout(this.shotClockViolation.bind(this), this.maxTime)
+  }
+  shotClockViolation() {
+    const r = this.skullServer.round;
+    const ph = r.phase;
+    const pi = r.cpIndex;
+
+    if (ph == "initial") {
+      for (var i=0; i < r.players; i++) {
+        if (r.isAlive[i] && r.cards[i].length == 0) {
+          this.skullServer.play(i, r.available[i][0])
+        }
+      }
+    } else if (ph == "turns") {
+      if (this.playerIndex == r.cpIndex) {
+        const c = r.available[pi][0];
+        if (c != undefined) this.skullServer.play(pi, c);
+        else this.skullServer.bid(pi, 1);
+      }
+    } else if (ph == "bidding") {
+      if (this.playerIndex == r.cpIndex) {
+        this.skullServer.fold(pi);
+      }
+    } else if (ph == "guessing") {
+      if (this.playerIndex == r.cpIndex) {
+        this.skullServer.endRound(pi, false, pi);
+      }
+    }
+  }
+}
+
 class Round {
   constructor(players, startingIndex, available, isAlive) {
     this.players = players;
