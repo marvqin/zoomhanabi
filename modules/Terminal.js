@@ -45,9 +45,9 @@ class Terminal {
   promptCountdown(n) {
     this.promptTimerN = n;
     const cp = this.term.get_prompt();
-    console.log(cp)
+    // console.log(cp)
     this.term.set_prompt(cp + this.promptTimerN.toString() + ": ");
-    console.log(cp + this.promptTimerN.toString() + ": ")
+    // console.log(cp + this.promptTimerN.toString() + ": ")
     if (this.promptCountDownIntervalHandle != undefined) window.clearInterval(this.promptCountDownIntervalHandle);
     const fn = function() {
       // console.log(fn, this.promptTimerN)
