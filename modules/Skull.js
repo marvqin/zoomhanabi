@@ -16,26 +16,38 @@ class ShotClock {
     const r = this.skullServer.round;
     const ph = r.phase;
     const pi = r.cpIndex;
-
+    console.log("shot clock violation", r, ph, pi);
     if (ph == "initial") {
-      for (var i=0; i < r.players; i++) {
+      for (var i=0; i < r.players.length; i++) {
         if (r.isAlive[i] && r.cards[i].length == 0) {
           this.skullServer.play(i, r.available[i][0])
+          this.skullServer.notifyMain(r.players[i].name + " timed out and played a card.")
         }
       }
     } else if (ph == "turns") {
       if (this.playerIndex == r.cpIndex) {
         const c = r.available[pi][0];
-        if (c != undefined) this.skullServer.play(pi, c);
-        else this.skullServer.bid(pi, 1);
+        if (c != undefined) {
+          this.skullServer.play(pi, c);
+          this.skullServer.notifyMain(r.players[pi].name + " timed out and played a card (turns).")
+        }
+        else {
+          this.skullServer.bid(pi, 1);
+          this.skullServer.notifyMain(r.players[pi].name + " timed out and bid 1.")
+
+        }
       }
     } else if (ph == "bidding") {
       if (this.playerIndex == r.cpIndex) {
         this.skullServer.fold(pi);
+        this.skullServer.notifyMain(r.players[pi].name + ": timed out and folded.")
+
       }
     } else if (ph == "guessing") {
       if (this.playerIndex == r.cpIndex) {
         this.skullServer.endRound(pi, false, pi);
+        this.skullServer.notifyMain(r.players[i].name + ": timed out and lost a card.")
+
       }
     }
   }
@@ -174,6 +186,7 @@ class ServerSkull {
     this.round = new Round(this.players, sp, availables, this.isAlive);
     this.emit();
     this.informInitial();
+    this.shotClock.reset();
   }
   canPlay(i, card) {
     console.log(i)
@@ -198,10 +211,12 @@ class ServerSkull {
       this.round.nCards += 1;
       if (this.round.phase == "turns") {
         this.nextPlayer();
+        this.shotClock.reset(this.round.cpIndex);
       }
       if (this.round.phase == "initial" && this.round.allHavePlayed()) {
         this.round.phase = "turns";
         this.informTurn();
+        this.shotClock.reset(this.round.cpIndex);
       }
       this.emit();
     } else {
@@ -230,6 +245,7 @@ class ServerSkull {
       this.round.cBid = amount;
       this.round.phase = "bidding";
       this.nextPlayer();
+      this.shotClock.reset(this.round.cpIndex)
       this.emit();
     } else {
       console.log("bad bid")
@@ -414,6 +430,9 @@ class ServerSkull {
     this.room.gameEmit(this.ev, "display", this.emitData());
     // this.io.emit(this.ev, "display", this.emitData())
   }
+  notifyMain(...data) {
+    this.room.gameEmit(this.ev, "notifyMain", ...data);
+  }
 }
 
 // class ClientSkull extends ClientModule {
@@ -441,9 +460,11 @@ class ClientSkull {
 
     if (ev == "yourTurn") {
       this.termMain.echo("Your turn. played: " + JSON.stringify(data[1]) + " , available: " + JSON.stringify(data[2]));
+      this.termMain.promptCountdown(5)
     }
     if (ev == "initialPhase") {
       this.termMain.echo("Initial phase, play a card. available: " + JSON.stringify(data[2]));
+      this.termMain.promptCountdown(5)
     }
     if (ev == "display") {
       this.updateDisplay(data[1]);
@@ -454,6 +475,9 @@ class ClientSkull {
     if (ev == "endRound") {
       this.termMain.term.clear();
       this.termSide.countdown(5);
+    }
+    if (ev == "notifyMain") {
+      this.termMain.echo(data[1]);
     }
 
   }
@@ -474,28 +498,29 @@ class ClientSkull {
   deactivate() {
     // this.termMain.pop();
   }
-  termHandler(command, term) {
-    const sc = command.slice(0, 256);
-    console.log("clientskulltermHandler: ", sc)
-    var p = term.__T__.parse_command(sc)
-    // console.log(p)
-    const c = p.name;
-    if (c == "rose" || c == "r") {
-      this.socket.emit(this.ev, "play", "rose");
-    } else if (c == "skull" || c == "s") {
-      this.socket.emit(this.ev, "play", "skull");
-    } else if (c == "bid") {
-      this.socket.emit(this.ev, "bid", p.args[0]);
-    } else if (c == "fold") {
-      this.socket.emit(this.ev, "fold");
-    } else if (c == "guess") {
-      this.socket.emit(this.ev, "guess", p.args[0]);
-    } else {
-      term.echo("bad command");
-    }
+  // termHandler(command, term) {
+  //   const sc = command.slice(0, 256);
+  //   console.log("clientskulltermHandler: ", sc)
+  //   var p = term.__T__.parse_command(sc)
+  //   // console.log(p)
+  //   const c = p.name;
+  //   if (c == "rose" || c == "r") {
+  //     this.socket.emit(this.ev, "play", "rose");
+  //   } else if (c == "skull" || c == "s") {
+  //     this.socket.emit(this.ev, "play", "skull");
+  //   } else if (c == "bid") {
+  //     this.socket.emit(this.ev, "bid", p.args[0]);
+  //   } else if (c == "fold") {
+  //     this.socket.emit(this.ev, "fold");
+  //   } else if (c == "guess") {
+  //     this.socket.emit(this.ev, "guess", p.args[0]);
+  //   } else {
+  //     term.echo("bad command");
+  //   }
+
     // term.echo("handler",command)
     // this.term.echo("more")
-  }
+  //}
   updateDisplay(d) {
     console.log(d)
     var rt = this.termSide.term;

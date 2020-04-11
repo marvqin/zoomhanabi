@@ -25,6 +25,7 @@ class Terminal {
     this.term.set_interpreter(this.handler.bind(this));
 
     this.countDownIntervalHandle = undefined;
+    this.orig_prompt = undefined;
   }
   echo(s) {
     this.term.echo(s)
@@ -44,17 +45,23 @@ class Terminal {
   }
   promptCountdown(n) {
     this.promptTimerN = n;
-    const cp = this.term.get_prompt();
+    // const cp = this.term.get_prompt();
     // console.log(cp)
-    this.term.set_prompt(cp + this.promptTimerN.toString() + ": ");
     // console.log(cp + this.promptTimerN.toString() + ": ")
-    if (this.promptCountDownIntervalHandle != undefined) window.clearInterval(this.promptCountDownIntervalHandle);
+    if (this.promptCountDownIntervalHandle != undefined) {
+      window.clearInterval(this.promptCountDownIntervalHandle);
+    }
+    else {
+      this.orig_prompt = this.term.get_prompt();
+    }
+    this.term.set_prompt(this.orig_prompt + this.promptTimerN.toString() + ": ");
+
     const fn = function() {
       // console.log(fn, this.promptTimerN)
       this.promptTimerN -= 1;
-      this.term.set_prompt(cp + this.promptTimerN.toString() + ": ");
+      this.term.set_prompt(this.orig_prompt + this.promptTimerN.toString() + ": ");
       if (this.promptTimerN <= 0) {
-        this.term.set_prompt(cp);
+        this.term.set_prompt(this.orig_prompt);
         window.clearInterval(this.promptCountDownIntervalHandle)
         return;
       }
@@ -63,6 +70,10 @@ class Terminal {
     }.bind(this);
     console.log("setting timer")
     this.promptCountDownIntervalHandle = window.setInterval(fn, 1000)
+  }
+  endPromptCountdown() {
+    this.term.set_prompt(this.orig_prompt);
+    window.clearInterval(this.promptCountDownIntervalHandle)
   }
   addCommand(mode, command, fn) {
     if (this.cDict[mode] == undefined) this.cDict[mode] = [];
@@ -84,7 +95,7 @@ class Terminal {
         this.showHelp();
         matched = true;
       }
-      console.log(this.cDict, this)
+      console.log(this.cDict, this);
       const cArray = this.cDict[this.mode];
       for (var i=0; i < cArray.length; i++) {
         const m = cArray[i].run(p.name, ...p.args);
@@ -95,6 +106,7 @@ class Terminal {
       this.term.echo("bad command: "+err);
     }
     if (matched == false) this.term.echo("bad command")
+    if (matched == true) this.endPromptCountdown();
   }
 }
 export {Terminal}
