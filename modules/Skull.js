@@ -5,7 +5,7 @@ class ShotClock {
     this.skullServer = skullServer;
     this.handle = undefined;
     this.playerIndex = undefined;
-    this.maxTime = 5000; // ms
+    this.maxTime = 25000; // ms
   }
   reset(playerIndex) {
     if (this.handle != undefined) clearTimeout(this.handle)
@@ -20,33 +20,32 @@ class ShotClock {
     if (ph == "initial") {
       for (var i=0; i < r.players.length; i++) {
         if (r.isAlive[i] && r.cards[i].length == 0) {
-          this.skullServer.play(i, r.available[i][0])
           this.skullServer.notifyMain(r.players[i].name + " timed out and played a card.")
+          this.skullServer.play(i, r.available[i][0])
         }
       }
     } else if (ph == "turns") {
       if (this.playerIndex == r.cpIndex) {
         const c = r.available[pi][0];
         if (c != undefined) {
-          this.skullServer.play(pi, c);
           this.skullServer.notifyMain(r.players[pi].name + " timed out and played a card (turns).")
+          this.skullServer.play(pi, c);
         }
         else {
+          this.skullServer.notifyMain(r.players[pi].name + " timed out and bid 1.");
           this.skullServer.bid(pi, 1);
-          this.skullServer.notifyMain(r.players[pi].name + " timed out and bid 1.")
-
         }
       }
     } else if (ph == "bidding") {
       if (this.playerIndex == r.cpIndex) {
-        this.skullServer.fold(pi);
         this.skullServer.notifyMain(r.players[pi].name + ": timed out and folded.")
+        this.skullServer.fold(pi);
 
       }
     } else if (ph == "guessing") {
       if (this.playerIndex == r.cpIndex) {
-        this.skullServer.endRound(pi, false, pi);
         this.skullServer.notifyMain(r.players[i].name + ": timed out and lost a card.")
+        this.skullServer.endRound(pi, false, pi);
 
       }
     }
@@ -460,11 +459,11 @@ class ClientSkull {
 
     if (ev == "yourTurn") {
       this.termMain.echo("Your turn. played: " + JSON.stringify(data[1]) + " , available: " + JSON.stringify(data[2]));
-      this.termMain.promptCountdown(5)
+      this.termMain.promptCountdown(24)
     }
     if (ev == "initialPhase") {
       this.termMain.echo("Initial phase, play a card. available: " + JSON.stringify(data[2]));
-      this.termMain.promptCountdown(5)
+      this.termMain.promptCountdown(24)
     }
     if (ev == "display") {
       this.updateDisplay(data[1]);

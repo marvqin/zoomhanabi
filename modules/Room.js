@@ -269,7 +269,7 @@ class ClientRoom {
     this.termMain.addCommand("room", "name", this.emit.bind(this, "name"));
     this.termMain.addCommand("room", "play", this.emit.bind(this, "play"));
     this.termMain.addCommand("room", "kwalexadmin", this.emit.bind(this, "kwalexadmin"));
-    this.termMain.addCommand("room", "timer", this.termMain.promptCountdown.bind(this.termMain, 3));
+    // this.termMain.addCommand("room", "timer", this.termMain.promptCountdown.bind(this.termMain, 3));
     // this.termMain.addCommand("room", "play", function() {
     //   this.emit("play");
     // }.bind(this));
