@@ -282,7 +282,6 @@ class ClientRoom {
 
 
     this.activate();
-    this.socket.on(this.ev, this.ioHandler.bind(this, this.socket));
     // this.socket.on("display", this.updateDisplay.bind(this));
     // this.socket.on("notification", function(m) {
     //   this.termMain.echo(m)
@@ -302,8 +301,10 @@ class ClientRoom {
     this.termMain.term.focus(true);
     this.termRoom.term.pause();
     this.termSide.term.pause();
+    this.socket.on(this.ev, this.ioHandler.bind(this, this.socket));
   }
   deactivate() {
+    this.socket.removeAllListeners(this.ev);
     // this.termMain.pop();
   }
   ioHandler(socket, ...data) {

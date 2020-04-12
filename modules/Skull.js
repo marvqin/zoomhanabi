@@ -353,8 +353,9 @@ class ServerSkull {
       this.points[i] += 1;
       if (this.points[i] == 2) {
         this.endGame(i);
-      }
+      } else {
       setTimeout(this.startRound.bind(this, i), 6000);
+      }
       // this.startRound(i);
     }
     if (!outcome) {
@@ -405,7 +406,7 @@ class ServerSkull {
       hLengths.push(this.hands[i].length)
     }
     var r = this.round;
-    var ret = {}
+    var ret = {};
     ret["pN"] = pNames;
     ret["pts"] = this.points;
     // ret["av"] = this.available;
