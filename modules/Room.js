@@ -284,7 +284,7 @@ class ClientRoom {
     // this.termRoom.addCommand("play", p => this.emit("play"));
 
 
-
+    this.socket.on(this.ev, this.ioHandler.bind(this, this.socket));
     this.activate();
     // this.socket.on("display", this.updateDisplay.bind(this));
     // this.socket.on("notification", function(m) {
@@ -295,6 +295,7 @@ class ClientRoom {
     // term.settings().greetings = "Room"
   }
   emit(...data) {
+    // console.log("emit: ", ...data);
     this.socket.emit(this.ev, ...data);
   }
   activate() {
@@ -305,7 +306,6 @@ class ClientRoom {
     this.termMain.term.focus(true);
     this.termRoom.term.pause();
     this.termSide.term.pause();
-    this.socket.on(this.ev, this.ioHandler.bind(this, this.socket));
   }
   deactivate() {
     this.socket.removeAllListeners(this.ev);
@@ -341,7 +341,7 @@ class ClientRoom {
     }
   }
   startGame(ev, game, ...data) {
-    this.deactivate();
+    // this.deactivate();
     if (game == "skull") this.game = new ClientSkull(this.socket, this.termMain, this.termSide, ...data);
     // this.deactivate();
     // this.game.updateDisplay(emitData)

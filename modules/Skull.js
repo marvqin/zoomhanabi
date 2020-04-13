@@ -10,7 +10,10 @@ class ShotClock {
   reset(playerIndex) {
     if (this.handle != undefined) clearTimeout(this.handle)
     this.playerIndex = playerIndex
-    this.handle = setTimeout(this.shotClockViolation.bind(this), this.maxTime)
+    let t = this.maxTime;
+    if (this.skullServer.round.phase == "guessing")
+      t = 8*(this.skullServer.round.cBid - 1)*1000;
+    this.handle = setTimeout(this.shotClockViolation.bind(this), t)
   }
   shotClockViolation() {
     const r = this.skullServer.round;
@@ -515,6 +518,7 @@ class ClientSkull {
   //   this.socket.emit(this.eventName, "requestDisplay");
   // }
   emit(...data) {
+    console.log("emit: ", ...data)
     this.socket.emit(this.ev, ...data);
   }
   activate() {
@@ -588,7 +592,10 @@ class ClientSkull {
       if (d["phase"] == "initial" || d["cp"] == this.pIndex) {
         // rt.echo("your turn")
         if (!d["pStrs"][this.pIndex].includes("C") || d["phase"] != "initial") {
-          this.termMain.promptCountdown(24, true);
+          if (d["phase"] == "guessing")
+            this.termMain.promptCountdown(8*(d["cBid"] - 1))
+          else
+            this.termMain.promptCountdown(24, true);
           this.termSide.endCountdown();
           window.document.title = "Your Turn!"
           if (d["phase"] == "bidding") this.termMain.echo("Your turn - bid or fold.");
