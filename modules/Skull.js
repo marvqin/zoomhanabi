@@ -16,7 +16,7 @@ class ShotClock {
     const r = this.skullServer.round;
     const ph = r.phase;
     const pi = r.cpIndex;
-    console.log("shot clock violation", r, ph, pi);
+    console.log("shot clock violation", r, ph, this.playerIndex);
     if (ph == "initial") {
       for (var i=0; i < r.players.length; i++) {
         if (r.isAlive[i] && r.cards[i].length == 0) {
@@ -44,7 +44,7 @@ class ShotClock {
       }
     } else if (ph == "guessing") {
       if (this.playerIndex == r.cpIndex) {
-        this.skullServer.notifyMain(r.players[i].name + ": timed out and lost a card.")
+        this.skullServer.notifyMain(r.players[pi].name + ": timed out and lost a card.")
         this.skullServer.endRound(pi, false, pi);
 
       }
@@ -111,6 +111,7 @@ class ServerSkull {
     // this.onEnd = onEnd;
 
     this.shotClock = new ShotClock(this);
+    this.cachedEmitData = undefined;
 
     for (var cp of this.players) {
       this.hands.push(["skull", "rose", "rose", "rose"]);
@@ -167,8 +168,20 @@ class ServerSkull {
     }
   }
   start() {
+    // for (let i=0; i < this.players.length; i++) {
+    //   this.emitInitialData(i);
+    // }
     this.informInitial();
     // this.startRound(0);
+  }
+  initialData(socket) {
+    if (this.cachedEmitData == undefined) this.emitData();
+    let i = this.getIndex(socket);
+    let p = this.players[i];
+    // this.emitData();
+    let ret = [p.name, i, this.cachedEmitData];
+    // this.room.emitPlayer(p, this.ev, "initialData", ...ret);
+    return ret;
   }
   startRound(sp) {
     // var pl = [];
@@ -210,7 +223,7 @@ class ServerSkull {
       this.round.nCards += 1;
       if (this.round.phase == "turns") {
         this.nextPlayer();
-        this.shotClock.reset(this.round.cpIndex);
+        // this.shotClock.reset(this.round.cpIndex);
       }
       if (this.round.phase == "initial" && this.round.allHavePlayed()) {
         this.round.phase = "turns";
@@ -244,7 +257,7 @@ class ServerSkull {
       this.round.cBid = amount;
       this.round.phase = "bidding";
       this.nextPlayer();
-      this.shotClock.reset(this.round.cpIndex)
+      // this.shotClock.reset(this.round.cpIndex)
       this.emit();
     } else {
       console.log("bad bid")
@@ -312,6 +325,7 @@ class ServerSkull {
         this.guessPhase();
       }
     }
+    this.shotClock.reset(this.round.cpIndex);
     this.informTurn();
 
   }
@@ -347,6 +361,7 @@ class ServerSkull {
 
   }
   endRound(i, outcome, sp) {
+    this.round.phase = "ended";
     console.log("endRound: ",i,outcome);
     this.room.gameEmit(this.ev, "endRound");
     if (outcome) {
@@ -370,6 +385,7 @@ class ServerSkull {
 
   }
   endGame(winnerIndex) {
+    console.log("end game: ", winnerIndex)
     // const pl = this.round.getPlayerIndex(winnerIndex);
     this.emit();
     this.room.endGame();
@@ -424,6 +440,7 @@ class ServerSkull {
     ret["hLengths"] = hLengths;
     // ret["hands"] = this.hands;
     // ret = [pNames, this.points, this.available, roundNames, r.phase, r.cpIndex, r.status, r.cards, r.bids, r.cBid, r.nCards, r.guessIndex]
+    this.cachedEmitData = ret;
     return ret;
   }
   emit() {
@@ -437,7 +454,7 @@ class ServerSkull {
 
 // class ClientSkull extends ClientModule {
 class ClientSkull {
-  constructor(socket, termMain, termSide) {
+  constructor(socket, termMain, termSide, name, pIndex, dispData) {
     // super(io, "skull");
     this.socket = socket;
     this.ev = "skull";
@@ -451,6 +468,10 @@ class ClientSkull {
     this.termMain.addCommand("skull", ["guess", "g"], this.emit.bind(this, "guess"));
     // this.socket.on("display", this.updateDisplay.bind(this));
     this.activate();
+
+    this.name = name;
+    this.pIndex = pIndex;
+    this.updateDisplay(dispData);
     // console.log("skull active", termMain)
     // this.requestDisplay();
   }
@@ -460,25 +481,34 @@ class ClientSkull {
 
     if (ev == "yourTurn") {
       this.termMain.echo("Your turn. played: " + JSON.stringify(data[1]) + " , available: " + JSON.stringify(data[2]));
-      this.termMain.promptCountdown(24)
+      // this.termMain.promptCountdown(24)
     }
     if (ev == "initialPhase") {
+      this.termMain.term.clear();
       this.termMain.echo("Initial phase, play a card. available: " + JSON.stringify(data[2]));
-      this.termMain.promptCountdown(24)
+      // this.termMain.promptCountdown(24)
     }
     if (ev == "display") {
       this.updateDisplay(data[1]);
     }
-    if (ev == "yourGuess") {
-      this.termMain.echo("Your turn to guess.");
-    }
+    // if (ev == "yourGuess") {
+    //   this.termMain.echo("Your turn to guess.");
+    // }
     if (ev == "endRound") {
-      this.termMain.term.clear();
+      // this.termMain.term.clear();
+      this.termMain.echo("Round over.")
       this.termSide.countdown(5);
     }
     if (ev == "notifyMain") {
       this.termMain.echo(data[1]);
     }
+    // if (ev == "initialData") {
+    //   console.log("initialData: ", data)
+    //   this.name = data[1]
+    //   this.pIndex = data[2]
+    //   this.updateDisplay(data[3])
+    //   console.log("initial data", this)
+    // }
 
   }
   // requestDisplay() {
@@ -522,7 +552,9 @@ class ClientSkull {
     // this.term.echo("more")
   //}
   updateDisplay(d) {
-    console.log(d)
+    // console.log("update display", d)
+
+
     var rt = this.termSide.term;
     rt.clear();
     // const s1 = `Phase: ${d["phase"]}, cBid: ${d["cBid"]}, cP: ${d["cp"]}, `;
@@ -552,6 +584,26 @@ class ClientSkull {
     rt.echo(".")
     // rt.echo(d["phase"]);
     // rt.echo(d["cBid"]);
+    if (d["phase"] != "ended") {
+      if (d["phase"] == "initial" || d["cp"] == this.pIndex) {
+        // rt.echo("your turn")
+        if (!d["pStrs"][this.pIndex].includes("C") || d["phase"] != "initial") {
+          this.termMain.promptCountdown(24, true);
+          this.termSide.endCountdown();
+          window.document.title = "Your Turn!"
+        }
+        // alert("your turn!")
+      } else {
+        window.document.title = "zoom-hanabi"
+        this.termMain.endPromptCountdown();
+        this.termSide.countdown(24);
+      }
+    } else {
+      window.document.title = "zoom-hanabi"
+      this.termMain.endPromptCountdown();
+
+    }
+
   }
 }
 

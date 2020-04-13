@@ -91,11 +91,15 @@ class ServerRoom {
   startGame(game) {
     if (game == "skull") this.game = new ServerSkull(this);
     if (this.game) {
+      // this.game.emitData()
       for (var s of this.getSockets()) {
         if (s == undefined) continue;
         s.on(this.game.ev, this.gameHandler.bind(this, s));
+        s.emit(this.ev, "startGame", game, ...this.game.initialData(s))
       }
-      this.io.emit(this.ev, "startGame", game, this.game.emitData());
+      // this.io.emit(this.ev, "startGame", game, this.game.emitData());
+      // this.io.emit(this.ev, "startGame", game, );
+
       this.game.start();
     }
   }
@@ -130,7 +134,7 @@ class ServerRoom {
     }
     for (var i = 0; i < this.playing.length; i++) {
       if (this.playing[i].socket && this.playing[i].socket.id == id && this.game) {
-        this.io.to(`${id}`).emit(this.ev, "startGame", this.game.ev, this.game.emitData())
+        this.io.to(`${id}`).emit(this.ev, "startGame", this.game.ev, ...this.game.initialData(this.playing[i].socket))
         socket.on(this.game.ev, this.gameHandler.bind(this, socket));
       }
     }
@@ -317,7 +321,7 @@ class ClientRoom {
       this.updateDisplay(data[1]);
     }
     if (event == "startGame") {
-      this.startGame(data[1], data[2]);
+      this.startGame(...data);
     }
     if (event == "endGame") {
       this.game.deactivate();
@@ -336,11 +340,11 @@ class ClientRoom {
       this.termNote.echo(data[1])
     }
   }
-  startGame(game, emitData) {
+  startGame(ev, game, ...data) {
     this.deactivate();
-    if (game == "skull") this.game = new ClientSkull(this.socket, this.termMain, this.termSide);
+    if (game == "skull") this.game = new ClientSkull(this.socket, this.termMain, this.termSide, ...data);
     // this.deactivate();
-    this.game.updateDisplay(emitData)
+    // this.game.updateDisplay(emitData)
     this.socket.on(this.game.ev, this.game.ioHandler.bind(this.game))
   }
 

@@ -43,7 +43,15 @@ class Terminal {
     console.log("setting timer")
     this.countDownIntervalHandle = window.setInterval(fn, 1000)
   }
-  promptCountdown(n) {
+  endCountdown() {
+    window.clearInterval(this.countDownIntervalHandle);
+    if (this.countDownIntervalHandle != undefined)
+      this.term.update(-1, "")
+    this.countDownIntervalHandle = undefined;
+
+  }
+  promptCountdown(n, defer) {
+    if (defer && this.promptCountDownIntervalHandle != undefined) return;
     this.promptTimerN = n;
     // const cp = this.term.get_prompt();
     // console.log(cp)
@@ -61,8 +69,10 @@ class Terminal {
       this.promptTimerN -= 1;
       this.term.set_prompt(this.orig_prompt + this.promptTimerN.toString() + ": ");
       if (this.promptTimerN <= 0) {
-        this.term.set_prompt(this.orig_prompt);
-        window.clearInterval(this.promptCountDownIntervalHandle)
+        this.endPromptCountdown();
+        // this.term.set_prompt(this.orig_prompt);
+        // window.clearInterval(this.promptCountDownIntervalHandle)
+        // this.promptCountDownIntervalHandle = undefined;
         return;
       }
 
@@ -74,6 +84,7 @@ class Terminal {
   endPromptCountdown() {
     this.term.set_prompt(this.orig_prompt);
     window.clearInterval(this.promptCountDownIntervalHandle)
+    this.promptCountDownIntervalHandle = undefined;
   }
   addCommand(mode, command, fn) {
     if (this.cDict[mode] == undefined) this.cDict[mode] = [];
