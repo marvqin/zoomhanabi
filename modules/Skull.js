@@ -591,6 +591,8 @@ class ClientSkull {
           this.termMain.promptCountdown(24, true);
           this.termSide.endCountdown();
           window.document.title = "Your Turn!"
+          if (d["phase"] == "bidding") this.termMain.echo("Your turn - bid or fold.");
+          if (d["phase"] == "guessing") this.termMain.echo("Your turn to guess.")
         }
         // alert("your turn!")
       } else {
