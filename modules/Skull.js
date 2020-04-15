@@ -6,6 +6,7 @@ class ShotClock {
     this.handle = undefined;
     this.playerIndex = undefined;
     this.maxTime = 25000; // ms
+    this.endTime = undefined;
   }
   reset(playerIndex) {
     if (this.handle != undefined) clearTimeout(this.handle)
@@ -13,9 +14,12 @@ class ShotClock {
     let t = this.maxTime;
     if (this.skullServer.round.phase == "guessing")
       t = 8*(this.skullServer.round.cBid - 1)*1000;
+
+    this.endTime = Date.now() + t;
     this.handle = setTimeout(this.shotClockViolation.bind(this), t)
   }
   shotClockViolation() {
+    this.endTime = undefined;
     const r = this.skullServer.round;
     const ph = r.phase;
     const pi = r.cpIndex;
@@ -199,9 +203,10 @@ class ServerSkull {
     //   }
     // }
     this.round = new Round(this.players, sp, availables, this.isAlive);
+    this.shotClock.reset();
+
     this.emit();
     this.informInitial();
-    this.shotClock.reset();
   }
   canPlay(i, card) {
     console.log(i)
@@ -441,6 +446,9 @@ class ServerSkull {
     ret["guessIndex"] = r.guessIndex;
     ret["cg"] = r.correctGuesses;
     ret["hLengths"] = hLengths;
+
+    ret["scP"] = this.shotClock.playerIndex;
+    ret["scT"] = this.shotClock.endTime;
     // ret["hands"] = this.hands;
     // ret = [pNames, this.points, this.available, roundNames, r.phase, r.cpIndex, r.status, r.cards, r.bids, r.cBid, r.nCards, r.guessIndex]
     this.cachedEmitData = ret;
@@ -592,10 +600,14 @@ class ClientSkull {
       if (d["phase"] == "initial" || d["cp"] == this.pIndex) {
         // rt.echo("your turn")
         if (!d["pStrs"][this.pIndex].includes("C") || d["phase"] != "initial") {
-          if (d["phase"] == "guessing")
-            this.termMain.promptCountdown(8*(d["cBid"] - 1))
-          else
-            this.termMain.promptCountdown(24, true);
+          // if (d["phase"] == "guessing")
+
+          const t = Math.round((d["scT"] - Date.now())/1000) - 1;
+          // console.log("shot clock: ", d["scT"], t)
+          this.termMain.promptCountdown(t)
+          //   this.termMain.promptCountdown(8*(d["cBid"] - 1))
+          // else
+          //   this.termMain.promptCountdown(24, true);
           this.termSide.endCountdown();
           window.document.title = "Your Turn!"
           if (d["phase"] == "bidding") this.termMain.echo("Your turn - bid or fold.");
@@ -605,7 +617,8 @@ class ClientSkull {
       } else {
         window.document.title = "zoom-hanabi"
         this.termMain.endPromptCountdown();
-        this.termSide.countdown(24);
+        const t = Math.round((d["scT"] - Date.now())/1000) - 1;
+        this.termSide.countdown(t);
       }
     } else {
       window.document.title = "zoom-hanabi"

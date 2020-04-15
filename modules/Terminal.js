@@ -117,7 +117,7 @@ class Terminal {
       this.term.echo("bad command: "+err);
     }
     if (matched == false) this.term.echo("bad command")
-    if (matched == true) this.endPromptCountdown();
+    // if (matched == true) this.endPromptCountdown();
   }
 }
 export {Terminal}
