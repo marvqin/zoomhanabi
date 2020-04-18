@@ -270,9 +270,10 @@ class ClientRoom {
     // this.termMain.addCommand("room", "name", function(name) {
     //   this.emit("name", name);
     // }.bind(this));
-    this.termMain.addCommand("room", "name", this.emit.bind(this, "name"));
-    this.termMain.addCommand("room", "play", this.emit.bind(this, "play"));
-    this.termMain.addCommand("room", "kwalexadmin", this.emit.bind(this, "kwalexadmin"));
+    // this.termMain.addCommand("room", "name", this.emit.bind(this, {this.ev:"name"}));
+    this.termMain.addCommand("room", "name", n => this.nemit({name:n}));
+    this.termMain.addCommand("room", "play", () => this.nemit("play"));
+    this.termMain.addCommand("room", "kwalexadmin", g => this.nemit({kwalexadmin:g}));
     // this.termMain.addCommand("room", "timer", this.termMain.promptCountdown.bind(this.termMain, 3));
     // this.termMain.addCommand("room", "play", function() {
     //   this.emit("play");
@@ -293,6 +294,10 @@ class ClientRoom {
     // this.socket.on("startGame", this.startGame);
     // term.name = "Room"
     // term.settings().greetings = "Room"
+  }
+  nemit(d) {
+    console.log("nemit: ", d)
+    this.socket.emit("message", {[this.ev]:d})
   }
   emit(...data) {
     // console.log("emit: ", ...data);
