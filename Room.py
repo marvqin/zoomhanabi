@@ -1,7 +1,10 @@
+from Skull import ServerSkull
+
 class Player:
     def __init__(self, name, sid):
         self.name = name
         self.sid = sid
+
 
 class Room:
     def __init__(self, sio):
@@ -92,23 +95,27 @@ class Room:
                     self.notifyMain(sid, "Wait for the current game to end.")
                     return
                 else:
-                    # console.log("ready: ", id, this.watching.length)
+                    # console.log("ready: ", id, self.watching.length)
                     self.playing.append(self.watching[i])
                     self.watching.pop(i)
 
         self.emit_display()
 
     def start_game(self, gamename):
-        if (game == "skull") self.game = ServerSkull(self);
-        if (self.game) {
-          for (var s of self.getSockets()) {
-            if (s == undefined) continue;
-            s.on(self.game.ev, self.gameHandler.bind(self, s));
-            s.emit(self.ev, "startGame", game, ...self.game.initialData(s))
-          }
-          self.game.start();
-        }
-        }
+        if gamename == "skull":
+            self.game_ev = gamename
+            self.game = ServerSkull(self);
+        if self.game:
+            for cp in self.playing:
+                iData = self.game.initialData(cp.sid)
+                fData = ["startGame", gamename]
+                fData.extend(iData)
+                self.sio.emit(self.ev, tuple(fData), room=cp.sid)
+        self.game.start()
+
+    def end_game(self):
+        self.game = undefined;
+        self.sio.emit(self.ev, "endGame");
 
     def notify_main(self, sid, msg):
         self.sio.emit(self.ev, ("notifyMain", msg), room=sid)
@@ -121,3 +128,9 @@ class Room:
 
     def emit_display(self):
         self.sio.emit(self.ev, ("display", self.get_emit_data()))
+
+    def emit_player(self, player, d):
+        self.sio.emit(self.game_ev, d, room=player.sid)
+
+    def emit_game(self, d):
+        self.sio.emit(self.game_ev, d)
