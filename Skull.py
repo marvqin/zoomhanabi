@@ -119,11 +119,13 @@ class ServerSkull:
 
     def io_handler(self, sid, data):
         print("skullioHandler", sid, data)
-        # var i = self.getIndex(socket);
+        i = self.getIndex(sid);
         if self.ev in data:
             sd = data[self.ev]
-            if "play" in sd:
-                self.play(i, sd["play"])
+            if "rose" in sd:
+                self.play(i, "rose")
+            elif "skull" in sd:
+                self.play(i, "skull")
             elif "bid" in sd:
                 self.bid(i, int(sd["bid"]))
             elif "fold" in sd:
@@ -158,7 +160,7 @@ class ServerSkull:
 
     def canPlay(self, i, card):
         # print(i)
-        if not self.round.available[i].includes(card):
+        if card not in self.round.available[i]:
             return False
 
         if self.round.phase == "initial" and len(self.round.cards[i]) == 0:
@@ -175,7 +177,7 @@ class ServerSkull:
         if self.canPlay(i, card):
             print("playing: ", i, card)
             self.round.cards[i].append(card)
-            self.round.available[i].splice(self.round.available[i].indexOf(card), 1)
+            self.round.available[i].pop(self.round.available[i].index(card))
             self.round.nCards += 1
             if self.round.phase == "turns":
                 self.nextPlayer()
@@ -183,7 +185,7 @@ class ServerSkull:
             if self.round.phase == "initial" and self.round.allHavePlayed():
                 self.round.phase = "turns"
                 self.informTurn()
-                self.shotClock.reset(self.round.cpIndex)
+                # self.shotClock.reset(self.round.cpIndex)
                 self.emit()
 
             else:

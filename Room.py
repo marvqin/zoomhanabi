@@ -1,4 +1,5 @@
 from Skull import ServerSkull
+import eventlet
 
 class Player:
     def __init__(self, name, sid):
@@ -38,6 +39,11 @@ class Room:
                 return
             if "kwalexadmin" in rd:
                 self.start_game(rd["kwalexadmin"])
+            if "ping" in rd:
+                self.notify_main(sid, "pong")
+        elif self.game_ev in data:
+            self.game.io_handler(sid, data)
+                # eventlet.spawn_after(3, self.notify_main, sid, "pong2")
 
     def set_name(self, sid, longname):
         name = longname[0:8]

@@ -464,11 +464,16 @@ class ClientSkull {
     this.termMain = termMain;
     this.termSide = termSide;
 
-    this.termMain.addCommand("skull", ["rose", "r"], this.emit.bind(this, "play", "rose"));
-    this.termMain.addCommand("skull", ["skull", "s"], this.emit.bind(this, "play", "skull"));
-    this.termMain.addCommand("skull", ["bid", "b"], this.emit.bind(this, "bid"));
-    this.termMain.addCommand("skull", ["fold", "f"], this.emit.bind(this, "fold"));
-    this.termMain.addCommand("skull", ["guess", "g"], this.emit.bind(this, "guess"));
+    this.termMain.addCommand("skull", ["rose", "r"], () => this.emit("rose"));
+    // this.termMain.addCommand("skull", ["rose", "r"], this.emit.bind(this, "play", "rose"));
+    this.termMain.addCommand("skull", ["skull", "s"], () => this.emit("skull")));
+    // this.termMain.addCommand("skull", ["skull", "s"], this.emit.bind(this, "play", "skull"));
+    // this.termMain.addCommand("skull", ["bid", "b"], this.emit.bind(this, "bid"));
+    // this.termMain.addCommand("skull", ["fold", "f"], this.emit.bind(this, "fold"));
+    // this.termMain.addCommand("skull", ["guess", "g"], this.emit.bind(this, "guess"));
+    this.termMain.addCommand("skull", ["bid", "b"], (b) => this.emit({bid:b}));
+    this.termMain.addCommand("skull", ["fold", "f"], () => this.emit("fold"));
+    this.termMain.addCommand("skull", ["guess", "g"], (g) => this.emit({guess:g})));
     // this.socket.on("display", this.updateDisplay.bind(this));
     this.activate();
 
@@ -517,9 +522,9 @@ class ClientSkull {
   // requestDisplay() {
   //   this.socket.emit(this.eventName, "requestDisplay");
   // }
-  emit(...data) {
-    console.log("emit: ", ...data)
-    this.socket.emit(this.ev, ...data);
+  emit(d) {
+    console.log("emit: ", d)
+    this.socket.emit("message", {[this.ev]:d});
   }
   activate() {
     // super.activate();

@@ -274,6 +274,7 @@ class ClientRoom {
     this.termMain.addCommand("room", "name", n => this.nemit({name:n}));
     this.termMain.addCommand("room", "play", () => this.nemit("play"));
     this.termMain.addCommand("room", "kwalexadmin", g => this.nemit({kwalexadmin:g}));
+    this.termMain.addCommand("room", "ping", () => this.nemit("ping"));
     // this.termMain.addCommand("room", "timer", this.termMain.promptCountdown.bind(this.termMain, 3));
     // this.termMain.addCommand("room", "play", function() {
     //   this.emit("play");
