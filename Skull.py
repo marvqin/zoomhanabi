@@ -183,9 +183,10 @@ class ServerSkull:
             if self.round.phase == "turns":
                 self.nextPlayer()
 
-            if self.round.phase == "initial" and self.round.allHavePlayed():
-                self.round.phase = "turns"
-                self.informTurn()
+            if self.round.phase == "initial":
+                if self.round.allHavePlayed():
+                    self.round.phase = "turns"
+                    self.informTurn()
                 # self.shotClock.reset(self.round.cpIndex)
                 self.emit()
 
