@@ -49,6 +49,8 @@ class Room:
                 self.start_game(rd["kwalexadmin"])
             if "ping" in rd:
                 self.notify_main(sid, "pong")
+            if rd == "watch":
+                self.watch(sid)
         elif self.game_ev in data:
             self.game.io_handler(sid, data)
                 # eventlet.spawn_after(3, self.notify_main, sid, "pong2")
@@ -115,6 +117,14 @@ class Room:
                     self.watching.pop(i)
 
         self.emit_display()
+
+    def watch(self, sid):
+        for i in reversed(range(len(self.playing))):
+            if self.playing[i].sid == sid:
+                cp = self.playing[i]
+                self.playing.pop(i)
+                self.watching.append(cp)
+                self.emit_display()
 
     def start_game(self, gamename):
         if gamename == "skull":
