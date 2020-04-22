@@ -5,6 +5,7 @@ class Player:
     def __init__(self, name, sid):
         self.name = name
         self.sid = sid
+        self.connected = True
 
 
 class Room:
@@ -26,6 +27,13 @@ class Room:
 
     def on_disconnect(self, sid):
         print('disconnect ', sid)
+        for pp in self.playing:
+            if pp.sid == sid:
+                pp.connected = False
+
+        for i in reversed(range(len(self.watching))):
+            if self.watching[i].sid == sid:
+                self.watching.pop(i)
 
     def io_handler(self, sid, data):
         print("room::io_handler: ", data)
@@ -74,7 +82,7 @@ class Room:
             self.notify_main(sid, "can't change it now")
             return
         elif len(mpn) > 0:
-            if mpn[0].sid == None:
+            if mpn[0].connected == False:
                 matched_player = mpn[0]
             else:
                 self.notify_main(sid, "name taken you idiots")
@@ -88,6 +96,7 @@ class Room:
             matched_watcher.name = name
         elif matched_player and not matched_watcher:
             matched_player.sid = sid
+            matched_player.connected = True
             self.notify_main(sid, "logging back in as: {}".format(name))
 
         self.emit_display()
