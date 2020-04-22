@@ -1,4 +1,5 @@
 # import {ServerModule, ClientModule} from "./Module.js"
+import random
 
 class ShotClock:
     def __init__(self, skullServer):
@@ -167,7 +168,7 @@ class ServerSkull:
             return True
 
         if self.round.phase == "turns":
-            return self.round.isCurrentPlayer(i)
+            return self.round.cpIndex == i
 
         if self.round.phase == "bidding":
             return False
@@ -188,8 +189,8 @@ class ServerSkull:
                 # self.shotClock.reset(self.round.cpIndex)
                 self.emit()
 
-            else:
-                self.room.notifyMain(self.getSocket(i), "cut the crap")
+        else:
+                self.room.notify_main(self.getSocket(i), "cut the crap")
 
 
     def canBid(self, i, amount):
@@ -201,10 +202,10 @@ class ServerSkull:
             return False
 
         if self.round.phase == "turns":
-            return self.round.isCurrentPlayer(i)
+            return self.round.cpIndex == i
 
         if self.round.phase == "bidding":
-            return (self.round.isCurrentPlayer(i) and amount > self.round.cBid)
+            return (self.round.cpIndex == i and amount > self.round.cBid)
 
     def bid(self, i, amount):
         if self.canBid(i, amount):
@@ -213,28 +214,29 @@ class ServerSkull:
             self.round.phase = "bidding"
             self.nextPlayer()
         # self.shotClock.reset(self.round.cpIndex)
-            self.emit()
+            # self.emit()
         else:
             print("bad bid")
 
 
     def canFold(self, i):
-        if not self.round.isCurrentPlayer(i):
-            self.room.notifyMain(self.getSocket(i), "not your turn fool")
-        return (self.round.isCurrentPlayer(i) and self.round.phase == "bidding")
+        if self.round.cpIndex != i:
+            self.room.notify_main(self.getSocket(i), "not your turn fool")
+            return False
+        return self.round.phase == "bidding"
 
     def fold(self, i):
         if self.canFold(i):
             self.round.status[i] = False
             self.nextPlayer()
-            self.emit()
+            # self.emit()
 
 
     def canGuess(self, i):
         if self.round.phase != "guessing":
              return False
 
-        return self.round.isCurrentPlayer(i)
+        return self.round.cpIndex == i
 
     def guess(self, i, name):
         if self.canGuess(i):
@@ -251,7 +253,7 @@ class ServerSkull:
                 if outcome == "rose":
                     self.round.correctGuesses += 1
                 if self.round.correctGuesses == self.round.cBid:
-                    self.endRound(i, True)
+                    self.endRound(i, True, index)
 
 
             self.emit()
@@ -278,6 +280,7 @@ class ServerSkull:
 
 
         # self.shotClock.reset(self.round.cpIndex)
+        self.emit()
         self.informTurn()
 
 
@@ -321,17 +324,19 @@ class ServerSkull:
         if self.points[i] == 2:
             self.endGame(i)
         else:
-            setTimeout(self.startRound.bind(self, i), 6000)
+            print("set timeout")
+            # setTimeout(self.startRound.bind(self, i), 6000)
 
       # self.startRound(i);
 
         if not outcome:
-            r = Math.floor(Math.random() * len(self.hands[i]))
-            self.hands[i].pop(r)
+            # r = Math.floor(Math.random() * len(self.hands[i]))
+            # self.hands[i].pop(r)
+            self.hands[i].pop(random.randrange(len(self.hands[i])))
             if len(self.hands[i]) == 0:
                 self.isAlive[i] = False
 
-            setTimeout(self.startRound.bind(self, sp), 6000)
+            # setTimeout(self.startRound.bind(self, sp), 6000)
       # self.startRound(sp);
 
 
