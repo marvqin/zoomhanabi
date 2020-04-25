@@ -56,7 +56,8 @@
     termSide.__T__ = $.terminal;
     var TSide = new Terminal(termSide);
 
-    socket = io("http://3.22.85.41:3000/websocket");
+    socket = io.connect("http://3.22.85.41:3000/websocket");
+    console.log(socket)
     SC = new ClientRoom(socket, TMain, TRoom, TSide);
 
     // var room = new ClientRoom(t1, socket)
