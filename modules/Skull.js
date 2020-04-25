@@ -602,9 +602,11 @@ class ClientSkull {
     // rt.echo(d["phase"]);
     // rt.echo(d["cBid"]);
     if (d["phase"] != "ended") {
-      if (d["phase"] == "initial" || d["cp"] == this.pIndex) {
+      const havePlayed = d["pStrs"][this.pIndex].includes("C")
+      // console.log("havePlayed: ", havePlayed)
+      if ((d["phase"] == "initial" && !havePlayed) || (d["phase"] != "initial" && d["cp"] == this.pIndex)) {
         // rt.echo("your turn")
-        if (!d["pStrs"][this.pIndex].includes("C") || d["phase"] != "initial") {
+        // // if (!d["pStrs"][this.pIndex].includes("C") || d["phase"] != "initial") {
           // if (d["phase"] == "guessing")
 
           const t = Math.round((d["scT"] - Date.now())/1000) - 1;
@@ -617,7 +619,7 @@ class ClientSkull {
           window.document.title = "Your Turn!"
           if (d["phase"] == "bidding") this.termMain.echo("Your turn - bid or fold.");
           if (d["phase"] == "guessing") this.termMain.echo("Your turn to guess.")
-        }
+        // //}
         // alert("your turn!")
       } else {
         window.document.title = "zoom-hanabi"

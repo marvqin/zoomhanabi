@@ -139,7 +139,7 @@ class Room:
         self.game.start()
 
     def end_game(self):
-        self.game = undefined;
+        self.game = None;
         self.sio.emit(self.ev, "endGame");
 
     def notify_main(self, sid, msg):

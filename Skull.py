@@ -1,23 +1,27 @@
 # import {ServerModule, ClientModule} from "./Module.js"
 import random
+import time
+import eventlet
 
 class ShotClock:
     def __init__(self, skullServer):
         self.skullServer = skullServer
         self.handle = None
         self.playerIndex = None
-        self.maxTime = 25000 # ms
+        self.maxTime = 25 # s
+        self.endTime = None
 
 
-    def reset(self, playerIndex):
+    def reset(self, playerIndex=None):
         if self.handle != None:
-            clearTimeout(self.handle)
+            self.handle.cancel()
         self.playerIndex = playerIndex
         t = self.maxTime
         if self.skullServer.round.phase == "guessing":
-            t = 8*(self.skullServer.round.cBid - 1)*1000
-        self.handle = setTimeout(self.shotClockViolation.bind(self), t)
-
+            t = 8*(self.skullServer.round.cBid - 1)
+        # self.handle = setTimeout(self.shotClockViolation.bind(self), t)
+        self.endTime = time.time() + t
+        self.handle = eventlet.spawn_after(t, self.shotClockViolation)
 
     def shotClockViolation(self):
         r = self.skullServer.round
@@ -33,13 +37,14 @@ class ShotClock:
 
         elif ph == "turns":
             if self.playerIndex == r.cpIndex:
-                c = r.available[pi][0]
-            if c != None:
-                self.skullServer.notifyMain(r.players[pi].name + " timed out and played a card (turns).")
-                self.skullServer.play(pi, c)
-            else:
-                self.skullServer.notifyMain(r.players[pi].name + " timed out and bid 1.")
-                self.skullServer.bid(pi, 1)
+                # c = r.available[pi][0]
+                if len(r.available[pi]) > 0:
+                    c = r.available[pi][0]
+                    self.skullServer.notifyMain(r.players[pi].name + " timed out and played a card (turns).")
+                    self.skullServer.play(pi, c)
+                else:
+                    self.skullServer.notifyMain(r.players[pi].name + " timed out and bid 1.")
+                    self.skullServer.bid(pi, 1)
 
         elif ph == "bidding":
             if self.playerIndex == r.cpIndex:
@@ -155,6 +160,7 @@ class ServerSkull:
             availables.append(self.hands[i].copy())
 
         self.round = Round(self.players, sp, availables, self.isAlive)
+        self.shotClock.reset()
         self.emit()
         self.informInitial()
         # self.shotClock.reset()
@@ -187,7 +193,7 @@ class ServerSkull:
                 if self.round.allHavePlayed():
                     self.round.phase = "turns"
                     self.informTurn()
-                # self.shotClock.reset(self.round.cpIndex)
+                    self.shotClock.reset(self.round.cpIndex)
                 self.emit()
 
         else:
@@ -214,7 +220,7 @@ class ServerSkull:
             self.round.cBid = amount
             self.round.phase = "bidding"
             self.nextPlayer()
-        # self.shotClock.reset(self.round.cpIndex)
+            self.shotClock.reset(self.round.cpIndex)
             # self.emit()
         else:
             print("bad bid")
@@ -280,7 +286,7 @@ class ServerSkull:
                 self.guessPhase()
 
 
-        # self.shotClock.reset(self.round.cpIndex)
+        self.shotClock.reset(self.round.cpIndex)
         self.emit()
         self.informTurn()
 
@@ -325,7 +331,8 @@ class ServerSkull:
         if self.points[i] == 2:
             self.endGame(i)
         else:
-            print("set timeout")
+            eventlet.spawn_after(6, self.startRound, i)
+            # print("set timeout")
             # setTimeout(self.startRound.bind(self, i), 6000)
 
       # self.startRound(i);
@@ -337,6 +344,7 @@ class ServerSkull:
             if len(self.hands[i]) == 0:
                 self.isAlive[i] = False
 
+            eventlet.spawn_after(6, self.startRound, sp)
             # setTimeout(self.startRound.bind(self, sp), 6000)
       # self.startRound(sp);
 
@@ -379,6 +387,9 @@ class ServerSkull:
         ret["guessIndex"] = r.guessIndex
         ret["cg"] = r.correctGuesses
         ret["hLengths"] = hLengths
+        ret["scP"] = self.shotClock.playerIndex;
+        # ret["scT"] = self.shotClock.endTime*1000 if self.shotClock.endtime else None;
+        ret["scT"] = self.shotClock.endTime*1000
         self.cachedEmitData = ret
         return ret
 
