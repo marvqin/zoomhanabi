@@ -18,7 +18,7 @@ class ShotClock:
         self.playerIndex = playerIndex
         t = self.maxTime
         if self.skullServer.round.phase == "guessing":
-            t = 8*(self.skullServer.round.cBid - 1)
+            t = 8*(self.skullServer.round.cBid - 1) + 8
         # self.handle = setTimeout(self.shotClockViolation.bind(self), t)
         self.endTime = time.time() + t
         self.handle = eventlet.spawn_after(t, self.shotClockViolation)

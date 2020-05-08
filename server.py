@@ -23,4 +23,4 @@ app = socketio.WSGIApp(sio, static_files={
 
 if __name__ == '__main__':
     r = Room(sio)
-    eventlet.wsgi.server(eventlet.listen(('', 3000)), app)
+    eventlet.wsgi.server(eventlet.listen(('127.0.0.1', 3000)), app)
