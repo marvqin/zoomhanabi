@@ -56,6 +56,7 @@ class Room:
                 # eventlet.spawn_after(3, self.notify_main, sid, "pong2")
 
     def set_name(self, sid, longname):
+        ls = "{}".format(longname)
         name = longname[0:8]
         # print("set name: ", name)
 
