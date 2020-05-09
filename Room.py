@@ -1,5 +1,7 @@
-from Skull import ServerSkull
 import eventlet
+
+from Skull import ServerSkull
+from Vote import Vote
 
 class Player:
     def __init__(self, name, sid):
@@ -11,10 +13,11 @@ class Player:
 class Room:
     def __init__(self, sio):
         self.sio = sio
-        self.ev = "room";
-        self.playing = [];
-        self.watching = [];
-        self.game = None;
+        self.ev = "room"
+        self.playing = []
+        self.watching = []
+        self.game = None
+        self.current_vote = None
         sio.on('connect', self.on_connect)
         sio.on('disconnect', self.on_disconnect)
         sio.on('message', self.io_handler)
@@ -51,9 +54,56 @@ class Room:
                 self.notify_main(sid, "pong")
             if rd == "watch":
                 self.watch(sid)
+            if "callvote" in rd:
+                cd = rd["callvote"]
+                self.callvote(cd["type"], cd["text"])
+            if "vote" in rd:
+                self.vote(sid, rd["vote"])
+                # vote_type = cd["type"]
+                # vote_text = cd["text"]
         elif self.game_ev in data:
             self.game.io_handler(sid, data)
                 # eventlet.spawn_after(3, self.notify_main, sid, "pong2")
+
+    def find_player(self, sid=None, name=None):
+        l = self.playing
+        if sid != None:
+            m = [p for p in l if p.sid == sid]
+        elif name != None:
+            m = [p for p in l if p.name == name]
+        else:
+            m = []
+
+        if len(m) > 0:
+            return m[0]
+        else:
+            return None
+
+    def callvote(self, vote_type, vote_text):
+        if self.current_vote == None:
+            n_players = len(self.playing)
+            if vote_type == "poll":
+                self.notify_main("poll: {}".format(vote_text))
+                self.current_vote = Vote(n_players, self.poll_result)
+
+
+    def vote(self, sid, v):
+        if self.current_vote != None:
+            if v == "yes":
+                tf = True
+            elif v == "no":
+                tf = False
+            else:
+                console.log("bad vote: ", sid, v)
+                return
+
+            n = self.find_player(sid=sid).name
+            self.current_vote.vote(n, tf)
+
+
+    def poll_result(self, res):
+        console.log("poll_result: ", res)
+
 
     def set_name(self, sid, longname):
         ls = "{}".format(longname)
