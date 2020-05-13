@@ -2,8 +2,9 @@ import eventlet
 import time
 
 class Vote:
-    def __init__(self, num_voters, vote_type, vote_text, cb, t):
-        self.num_voters = num_voters
+    def __init__(self, voters, vote_type, vote_text, cb, t):
+        self.voters = voters
+        self.num_voters = len(voters)
         self.vote_type = vote_type
         self.vote_text = vote_text
         self.cb = cb
@@ -33,6 +34,8 @@ class Vote:
     def vote(self, name, v):
         if name in self.yes or name in self.no:
             return False
+        if name not in self.voters:
+            return False
         if v == True:
             self.yes.append(name)
         else:
@@ -51,4 +54,5 @@ class Vote:
         r["vote_type"] = self.vote_type
         r["end_time"] = self.end_time*1000
         r["status"] = self.status
+        r["total"] = self.num_voters
         return r

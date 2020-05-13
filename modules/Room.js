@@ -385,7 +385,7 @@ class ClientRoom {
   }
   voteData(data) {
     this.termSide.term.clear()
-    this.termSide.echo("Vote - "+data.vote_type+": " + data.vote_text + "\n" + "yes: " + data.yes + ", no: " + data.no)
+    this.termSide.echo("Vote - "+data.vote_type+": \n" + data.vote_text + "\n" + "yes: " + data.yes + ", no: " + data.no + ", total: " +data.total)
     console.log(data.status)
     if (data.status === true) {
       this.termSide.endCountdown(true)

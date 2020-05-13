@@ -55,8 +55,11 @@ class Room:
             if rd == "watch":
                 self.watch(sid)
             if "callvote" in rd:
-                cd = rd["callvote"]
-                self.callvote(cd["type"], cd["text"])
+                if self.find_player(sid=sid) != None:
+                    cd = rd["callvote"]
+                    self.callvote(cd["type"], cd["text"])
+                else:
+                    self.notify_main(sid, "you aren't playing yet")
             if "vote" in rd:
                 self.vote(sid, rd["vote"])
                 # vote_type = cd["type"]
@@ -82,13 +85,14 @@ class Room:
     def callvote(self, vote_type, vote_text):
         if self.current_vote == None:
             n_players = len(self.playing)
+            plist = [p.name for p in self.playing]
             if vote_type == "poll":
                 # self.notify_side(msg="poll: {}".format(vote_text))
-                self.current_vote = Vote(n_players, vote_type, vote_text, self.poll_result, 24)
+                self.current_vote = Vote(plist, vote_type, vote_text, self.poll_result, 24)
                 self.send_vote_data()
             if vote_type == "play":
                 self.proposed_game = vote_text
-                self.current_vote = Vote(n_players, vote_type, "Vote to play: {}".format(vote_text), self.play_result, 24)
+                self.current_vote = Vote(plist, vote_type, "Vote to play: {}".format(vote_text), self.play_result, 24)
                 self.send_vote_data()
         else:
             self.notify_main(None, "There's already a vote in progress.")
@@ -103,8 +107,13 @@ class Room:
                 console.log("bad vote: ", sid, v)
                 return
 
-            n = self.find_player(sid=sid).name
-            self.current_vote.vote(n, tf)
+            fp = self.find_player(sid=sid)
+            if fp == None:
+                self.notify_main(sid, "you aren't playing")
+                return
+            r = self.current_vote.vote(fp.name, tf)
+            if r == False:
+                self.notify_main(sid, "you can't vote")
             self.send_vote_data()
 
     def send_vote_data(self):
