@@ -57,6 +57,9 @@ class Room:
             if "callvote" in rd:
                 if self.find_player(sid=sid) != None:
                     cd = rd["callvote"]
+                    if "type" not in cd or "text" not in cd:
+                        self.notify_main("garbage callvote")
+                        return
                     self.callvote(cd["type"], cd["text"])
                 else:
                     self.notify_main(sid, "you aren't playing yet")
