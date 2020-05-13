@@ -83,9 +83,15 @@ class Room:
         if self.current_vote == None:
             n_players = len(self.playing)
             if vote_type == "poll":
-                self.notify_main("poll: {}".format(vote_text))
-                self.current_vote = Vote(n_players, self.poll_result)
-
+                # self.notify_side(msg="poll: {}".format(vote_text))
+                self.current_vote = Vote(n_players, vote_type, vote_text, self.poll_result, 24)
+                self.send_vote_data()
+            if vote_type == "play":
+                self.proposed_game = vote_text
+                self.current_vote = Vote(n_players, vote_type, "Vote to play: {}".format(vote_text), self.play_result, 24)
+                self.send_vote_data()
+        else:
+            self.notify_main(None, "There's already a vote in progress.")
 
     def vote(self, sid, v):
         if self.current_vote != None:
@@ -99,10 +105,27 @@ class Room:
 
             n = self.find_player(sid=sid).name
             self.current_vote.vote(n, tf)
+            self.send_vote_data()
+
+    def send_vote_data(self):
+        if self.current_vote == None:
+            return
+        dd = self.current_vote.data()
+        self.sio.emit(self.ev, ("voteData", dd))
+
 
 
     def poll_result(self, res):
-        console.log("poll_result: ", res)
+        self.send_vote_data()
+        self.current_vote = None
+        print("poll_result: ", res)
+
+    def play_result(self, res):
+        self.send_vote_data()
+        self.current_vote = None
+        if res == True:
+            self.start_game()
+
 
 
     def set_name(self, sid, longname):
@@ -177,7 +200,9 @@ class Room:
                 self.watching.append(cp)
                 self.emit_display()
 
-    def start_game(self, gamename):
+    def start_game(self, gamename=None):
+        self.current_vote = None
+        gamename = gamename if gamename else self.proposed_game
         if gamename == "skull":
             self.game_ev = gamename
             self.game = ServerSkull(self);
@@ -196,6 +221,9 @@ class Room:
     def notify_main(self, sid, msg):
         self.sio.emit(self.ev, ("notifyMain", msg), room=sid)
         # print("notify_main: ", msg)
+
+    def notify_side(self, sid=None, msg=None):
+        self.sio.emit(self.ev, ("notifySide", msg),room=sid)
 
     def get_emit_data(self):
         output = {"playing":[cp.name for cp in self.playing],

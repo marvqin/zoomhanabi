@@ -346,8 +346,11 @@ class ClientRoom {
     if (event == "notifyMain") {
       this.termMain.echo(data[1])
     }
-    if (event == "notifySecondary") {
-      this.termNote.echo(data[1])
+    if (event == "notifySide") {
+      this.termSide.echo(data[1])
+    }
+    if (event == "voteData") {
+      this.voteData(data[1])
     }
   }
   startGame(ev, game, ...data) {
@@ -379,6 +382,22 @@ class ClientRoom {
     this.termRoom.term.clear()
     this.termRoom.echo("Waiting: " + data.watching.join(", "));
     this.termRoom.echo("Playing: " + data.playing.join(", "));
+  }
+  voteData(data) {
+    this.termSide.term.clear()
+    this.termSide.echo("Vote - "+data.vote_type+": " + data.vote_text + "\n" + "yes: " + data.yes + ", no: " + data.no)
+    console.log(data.status)
+    if (data.status === true) {
+      this.termSide.endCountdown(true)
+      this.termSide.echo("The poll passed.")
+    } else if (data.status === false){
+      this.termSide.endCountdown(true)
+      this.termSide.echo("The poll failed.")
+    } else {
+      const t = Math.round((data.end_time - Date.now())/1000) - 1;
+      // this.termSide.echo(".")
+      this.termSide.countdown(t);
+    }
   }
 
 }

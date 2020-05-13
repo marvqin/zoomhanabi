@@ -43,10 +43,11 @@ class Terminal {
     console.log("setting timer")
     this.countDownIntervalHandle = window.setInterval(fn, 1000)
   }
-  endCountdown() {
+  endCountdown(keepLastLine) {
     window.clearInterval(this.countDownIntervalHandle);
     if (this.countDownIntervalHandle != undefined)
-      this.term.update(-1, "")
+      if (!keepLastLine)
+        this.term.update(-1, "")
     this.countDownIntervalHandle = undefined;
 
   }
