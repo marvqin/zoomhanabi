@@ -257,13 +257,14 @@ class ServerRoom {
 
 // class ClientRoom extends ClientModule {
 class ClientRoom {
-  constructor(socket, termMain, termRoom, termSide) {
+  constructor(socket, termMain, termRoom, termVote, termSide) {
     // super(socket, "room");
     this.socket = socket;
     this.ev = "room";
     this.termMain = termMain;
     this.termRoom = termRoom;
     this.termSide = termSide;
+    this.termVote = termVote;
     // this.startGame = startGame;
     // this.socket = socket;
 
@@ -276,9 +277,12 @@ class ClientRoom {
     this.termMain.addCommand("room", "kwalexadmin", g => this.nemit({kwalexadmin:g}));
     this.termMain.addCommand("room", "ping", () => this.nemit("ping"));
     this.termMain.addCommand("room", "watch", () => this.nemit("watch"))
-    this.termMain.addCommand("room", "callvote", (t,s) => this.nemit({callvote:{type:t, text:s}}));
+    // this.termMain.addCommand("room", "callvote", (t,s) => this.nemit({callvote:{type:t, text:s}}));
     // this.termMain.addCommand("room", "callvote", (t,s) => console.log(t,s));
-    this.termMain.addCommand("room", "vote", v => this.nemit({vote:v}));
+    this.termMain.addCommand("room", "game", g => this.nemit({gamevote:g}))
+    this.termVote.addCommand("room", "vote", v => this.nemit({vote:v}));
+
+    this.termVote.addCommand("room", "poll", t => this.nemit({poll:t}));
     // this.termMain.addCommand("room", "timer", this.termMain.promptCountdown.bind(this.termMain, 3));
     // this.termMain.addCommand("room", "play", function() {
     //   this.emit("play");
@@ -314,6 +318,7 @@ class ClientRoom {
     this.termMain.mode = "room"
     this.termMain.term.set_prompt("Room> ");
     this.termMain.term.focus(true);
+    this.termVote.mode = "room"
     this.termRoom.term.pause();
     this.termSide.term.pause();
   }
@@ -345,6 +350,9 @@ class ClientRoom {
     }
     if (event == "notifyMain") {
       this.termMain.echo(data[1])
+    }
+    if (event == "notifyVote") {
+      this.termVote.echo(data[1])
     }
     if (event == "notifySide") {
       this.termSide.echo(data[1])
@@ -384,19 +392,19 @@ class ClientRoom {
     this.termRoom.echo("Playing: " + data.playing.join(", "));
   }
   voteData(data) {
-    this.termSide.term.clear()
-    this.termSide.echo("Vote - "+data.vote_type+": \n" + data.vote_text + "\n" + "yes: " + data.yes + ", no: " + data.no + ", total: " +data.total)
+    this.termVote.term.clear()
+    this.termVote.echo("Vote - "+data.vote_type+": \n" + data.vote_text + "\n" + "yes: " + data.yes + ", no: " + data.no + ", total: " +data.total)
     console.log(data.status)
     if (data.status === true) {
-      this.termSide.endCountdown(true)
-      this.termSide.echo("The poll passed.")
+      this.termVote.endCountdown(true)
+      this.termVote.echo("The poll passed.")
     } else if (data.status === false){
-      this.termSide.endCountdown(true)
-      this.termSide.echo("The poll failed.")
+      this.termVote.endCountdown(true)
+      this.termVote.echo("The poll failed.")
     } else {
       const t = Math.round((data.end_time - Date.now())/1000) - 1;
-      // this.termSide.echo(".")
-      this.termSide.countdown(t);
+      // this.termVote.echo(".")
+      this.termVote.countdown(t);
     }
   }
 

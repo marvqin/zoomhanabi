@@ -22,6 +22,10 @@ class Room:
         sio.on('disconnect', self.on_disconnect)
         sio.on('message', self.io_handler)
 
+        self.proposed_game = None
+        self.game_dict = {}
+        self.game_dict["skull"] = ServerSkull
+
 
     def on_connect(self, sid, environ):
         print('connect ', sid)
@@ -51,18 +55,22 @@ class Room:
             if "kwalexadmin" in rd:
                 self.start_game(rd["kwalexadmin"])
             if "ping" in rd:
-                self.notify_main(sid, "pong")
+                self.notify_main("pong", sid)
             if rd == "watch":
                 self.watch(sid)
-            if "callvote" in rd:
-                if self.find_player(sid=sid) != None:
-                    cd = rd["callvote"]
-                    if "type" not in cd or "text" not in cd:
-                        self.notify_main("garbage callvote")
-                        return
-                    self.callvote(cd["type"], cd["text"])
-                else:
-                    self.notify_main(sid, "you aren't playing yet")
+            if "poll" in rd:
+                self.poll(rd["poll"], sid)
+            if "gamevote" in rd:
+                self.gamevote(rd["gamevote"],sid)
+            # if "callvote" in rd:
+            #     if self.find_player(sid=sid) != None:
+            #         cd = rd["callvote"]
+            #         if "type" not in cd or "text" not in cd:
+            #             self.notify_main("garbage callvote")
+            #             return
+            #         self.callvote(cd["type"], cd["text"])
+            #     else:
+            #         self.notify_main(sid, "you aren't playing yet")
             if "vote" in rd:
                 self.vote(sid, rd["vote"])
                 # vote_type = cd["type"]
@@ -85,20 +93,58 @@ class Room:
         else:
             return None
 
-    def callvote(self, vote_type, vote_text):
-        if self.current_vote == None:
-            n_players = len(self.playing)
-            plist = [p.name for p in self.playing]
-            if vote_type == "poll":
-                # self.notify_side(msg="poll: {}".format(vote_text))
-                self.current_vote = Vote(plist, vote_type, vote_text, self.poll_result, 24)
-                self.send_vote_data()
-            if vote_type == "play":
-                self.proposed_game = vote_text
-                self.current_vote = Vote(plist, vote_type, "Vote to play: {}".format(vote_text), self.play_result, 24)
-                self.send_vote_data()
-        else:
-            self.notify_main(None, "There's already a vote in progress.")
+    def poll(self, text=None, sid=None):
+        # self.notify_side(msg="poll: {}".format(vote_text))
+        if text == None:
+            self.notify_vote("garbage poll", sid)
+            return
+        if self.current_vote != None:
+            self.notify_vote("There's already a vote happening", sid)
+            return
+        if self.find_player(sid=sid) == None:
+            self.notify_vote("You aren't even playing yet", sid)
+            return
+
+        st = str(text)
+        plist = [p.name for p in self.playing]
+        self.current_vote = Vote(plist, "poll", st, self.poll_result, 24)
+        self.send_vote_data()
+
+
+    def gamevote(self, g, sid=None):
+        gs = str(g)
+        print("gamevote", gs)
+        if self.current_vote != None:
+            self.notify_main("There's already a vote happening", sid)
+            return
+        if gs not in self.game_dict:
+            self.notify_main("what game are *you* trying to play?", sid)
+            return
+        if self.find_player(sid=sid) == None:
+            self.notify_main("You aren't even playing yet", sid)
+            return
+
+        self.proposed_game = gs
+        plist = [p.name for p in self.playing]
+        self.current_vote = Vote(plist, "game", "Vote to play: {}".format(gs), self.play_result, 24)
+        self.send_vote_data()
+
+
+    # def callvote(self, vote_type, vote_text):
+    #     if self.current_vote == None:
+    #         n_players = len(self.playing)
+    #         plist = [p.name for p in self.playing]
+    #         if vote_type == "poll":
+    #             # self.notify_side(msg="poll: {}".format(vote_text))
+    #             self.current_vote = Vote(plist, vote_type, vote_text, self.poll_result, 24)
+    #             self.send_vote_data()
+    #         if vote_type == "play":
+    #             self.proposed_game = vote_text
+    #             self.current_vote = Vote(plist, vote_type, "Vote to play: {}".format(vote_text), self.play_result, 24)
+    #             self.send_vote_data()
+    #     else:
+    #         self.notify_main("There's already a vote in progress.")
+
 
     def vote(self, sid, v):
         if self.current_vote != None:
@@ -108,16 +154,16 @@ class Room:
                 tf = False
             else:
                 print("bad vote: ", sid, v)
-                self.notify_main(sid, "bad vote...")
+                self.notify_main("bad vote...", sid)
                 return
 
             fp = self.find_player(sid=sid)
             if fp == None:
-                self.notify_main(sid, "you aren't playing")
+                self.notify_main("you aren't playing", sid)
                 return
             r = self.current_vote.vote(fp.name, tf)
             if r == False:
-                self.notify_main(sid, "you can't vote")
+                self.notify_main("you can't vote", sid)
             self.send_vote_data()
 
     def send_vote_data(self):
@@ -133,12 +179,12 @@ class Room:
         self.current_vote = None
         print("poll_result: ", res)
 
+
     def play_result(self, res):
         self.send_vote_data()
         self.current_vote = None
         if res == True:
             self.start_game()
-
 
 
     def set_name(self, sid, longname):
@@ -164,29 +210,29 @@ class Room:
 
 
         if len(mwn) > 0:
-            self.notify_main(sid, "someone already got that one")
+            self.notify_main("someone already got that one", sid)
             return
 
         if matched_player:
-            self.notify_main(sid, "can't change it now")
+            self.notify_main("can't change it now", sid)
             return
         elif len(mpn) > 0:
             if mpn[0].connected == False:
                 matched_player = mpn[0]
             else:
-                self.notify_main(sid, "name taken you idiots")
+                self.notify_main("name taken you idiots", sid)
                 return
 
         if not matched_player and not matched_watcher:
-            self.notify_main(sid, "logging in as: {}".format(name))
+            self.notify_main("logging in as: {}".format(name), sid)
             self.watching.append(Player(name, sid))
         elif not matched_player and matched_watcher:
-            self.notify_main(sid, "name changed to: {}".format(name))
+            self.notify_main("name changed to: {}".format(name), sid)
             matched_watcher.name = name
         elif matched_player and not matched_watcher:
             matched_player.sid = sid
             matched_player.connected = True
-            self.notify_main(sid, "logging back in as: {}".format(name))
+            self.notify_main("logging back in as: {}".format(name), sid)
 
         self.emit_display()
 
@@ -231,10 +277,12 @@ class Room:
         self.game = None;
         self.sio.emit(self.ev, "endGame");
 
-    def notify_main(self, sid, msg):
+    def notify_main(self, msg, sid=None):
         self.sio.emit(self.ev, ("notifyMain", msg), room=sid)
         # print("notify_main: ", msg)
 
+    def notify_vote(self, msg, sid=None):
+        self.sio.emit(self.ev, ("notifyVote", msg), room=sid)
     def notify_side(self, sid=None, msg=None):
         self.sio.emit(self.ev, ("notifySide", msg),room=sid)
 
