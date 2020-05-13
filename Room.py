@@ -107,7 +107,8 @@ class Room:
             elif v == "no":
                 tf = False
             else:
-                console.log("bad vote: ", sid, v)
+                print("bad vote: ", sid, v)
+                self.notify_main(sid, "bad vote...")
                 return
 
             fp = self.find_player(sid=sid)
