@@ -487,6 +487,11 @@ class ClientSkull {
 
     this.name = name;
     this.pIndex = pIndex;
+    if (pIndex != undefined) {
+      this.isPlaying = true;
+    } else {
+      this.isPlaying = false;
+    }
     this.updateDisplay(dispData);
     // console.log("skull active", termMain)
     // this.requestDisplay();
@@ -602,9 +607,12 @@ class ClientSkull {
     // rt.echo(d["phase"]);
     // rt.echo(d["cBid"]);
     if (d["phase"] != "ended") {
-      const havePlayed = d["pStrs"][this.pIndex].includes("C")
+      var havePlayed;
+      if (this.isPlaying) {
+        havePlayed = d["pStrs"][this.pIndex].includes("C")
+      }
       // console.log("havePlayed: ", havePlayed)
-      if ((d["phase"] == "initial" && !havePlayed) || (d["phase"] != "initial" && d["cp"] == this.pIndex)) {
+      if (this.isPlaying && ((d["phase"] == "initial" && !havePlayed) || (d["phase"] != "initial" && d["cp"] == this.pIndex))) {
         // rt.echo("your turn")
         // // if (!d["pStrs"][this.pIndex].includes("C") || d["phase"] != "initial") {
           // if (d["phase"] == "guessing")

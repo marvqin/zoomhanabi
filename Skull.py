@@ -132,6 +132,9 @@ class ServerSkull:
     def io_handler(self, sid, data):
         print("skullioHandler", sid, data)
         i = self.getIndex(sid);
+        if i == None:
+            self.room.notify_main("you're supposed to be watching..", sid)
+            return
         if self.ev in data:
             sd = data[self.ev]
             if "rose" in sd:
@@ -154,8 +157,11 @@ class ServerSkull:
         if self.cachedEmitData == None:
             self.emitData()
         i = self.getIndex(sid)
-        p = self.players[i]
-        ret = [p.name, i, self.cachedEmitData]
+        if i == None:
+            name = None
+        else:
+            name = self.players[i].name
+        ret = [name, i, self.cachedEmitData]
         return ret
 
 

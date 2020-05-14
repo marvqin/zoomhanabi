@@ -226,6 +226,8 @@ class Room:
         if not matched_player and not matched_watcher:
             self.notify_main("logging in as: {}".format(name), sid)
             self.watching.append(Player(name, sid))
+            if self.game:
+                self.emit_start_game(sid)
         elif not matched_player and matched_watcher:
             self.notify_main("name changed to: {}".format(name), sid)
             matched_watcher.name = name
@@ -239,6 +241,11 @@ class Room:
 
     def ready(self, sid):
         print("ready: ", sid)
+        if self.find_player(sid=sid) != None:
+            if self.game:
+                self.emit_start_game(sid)
+                return
+
         for i in reversed(range(len(self.watching))):
             if self.watching[i].sid == sid:
                 if self.game:
@@ -248,6 +255,8 @@ class Room:
                     # console.log("ready: ", id, self.watching.length)
                     self.playing.append(self.watching[i])
                     self.watching.pop(i)
+
+
 
         self.emit_display()
 
@@ -267,10 +276,11 @@ class Room:
             self.game = ServerSkull(self);
         if self.game:
             for cp in self.playing:
-                self.emit_start_game(gamename, cp.sid)
+                self.emit_start_game(cp.sid)
         self.game.start()
 
-    def emit_start_game(self, gamename, sid):
+    def emit_start_game(self, sid):
+        gamename = self.game_ev
         iData = self.game.initialData(sid)
         fData = ["startGame", gamename]
         fData.extend(iData)
