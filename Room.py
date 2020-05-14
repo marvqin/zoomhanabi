@@ -267,11 +267,14 @@ class Room:
             self.game = ServerSkull(self);
         if self.game:
             for cp in self.playing:
-                iData = self.game.initialData(cp.sid)
-                fData = ["startGame", gamename]
-                fData.extend(iData)
-                self.sio.emit(self.ev, tuple(fData), room=cp.sid)
+                self.emit_start_game(gamename, cp.sid)
         self.game.start()
+
+    def emit_start_game(self, gamename, sid):
+        iData = self.game.initialData(sid)
+        fData = ["startGame", gamename]
+        fData.extend(iData)
+        self.sio.emit(self.ev, tuple(fData), room=sid)
 
     def end_game(self):
         self.game = None;

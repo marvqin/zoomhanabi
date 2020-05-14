@@ -292,7 +292,8 @@ class ServerSkull:
                 self.guessPhase()
 
 
-        self.shotClock.reset(self.round.cpIndex)
+        if self.round.phase != "ended":
+            self.shotClock.reset(self.round.cpIndex)
         self.emit()
         self.informTurn()
 
