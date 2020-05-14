@@ -283,6 +283,8 @@ class ClientRoom {
     this.termMain.addCommand("room", "vote", v => this.nemit({vote:v}));
 
     this.termMain.addCommand("room", "poll", t => this.nemit({poll:t}));
+    this.termVote.addCommand("room", "vote", v => this.nemit({vote:v}));
+    this.termVote.addCommand("room", "poll", t => this.nemit({poll:t}));
     // this.termMain.addCommand("room", "timer", this.termMain.promptCountdown.bind(this.termMain, 3));
     // this.termMain.addCommand("room", "play", function() {
     //   this.emit("play");
