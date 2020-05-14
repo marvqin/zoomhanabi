@@ -23,6 +23,12 @@ class ShotClock:
         self.endTime = time.time() + t
         self.handle = eventlet.spawn_after(t, self.shotClockViolation)
 
+
+    def stop(self):
+        if self.handle != None:
+            self.handle.cancel()
+            self.handle = None
+
     def shotClockViolation(self):
         r = self.skullServer.round
         ph = r.phase
@@ -197,7 +203,7 @@ class ServerSkull:
                 self.emit()
 
         else:
-                self.room.notify_main(self.getSocket(i), "cut the crap")
+                self.room.notify_main("cut the crap", self.getSocket(i), )
 
 
     def canBid(self, i, amount):
@@ -228,7 +234,7 @@ class ServerSkull:
 
     def canFold(self, i):
         if self.round.cpIndex != i:
-            self.room.notify_main(self.getSocket(i), "not your turn fool")
+            self.room.notify_main("not your turn fool", self.getSocket(i))
             return False
         return self.round.phase == "bidding"
 
@@ -323,6 +329,7 @@ class ServerSkull:
 
 
     def endRound(self, i, outcome, sp):
+        self.shotClock.stop()
         self.round.phase = "ended"
         print("endRound: ",i,outcome)
         self.room.emit_game("endRound")
