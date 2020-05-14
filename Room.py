@@ -96,13 +96,13 @@ class Room:
     def poll(self, text=None, sid=None):
         # self.notify_side(msg="poll: {}".format(vote_text))
         if text == None:
-            self.notify_vote("garbage poll", sid)
+            self.notify_main("garbage poll", sid)
             return
         if self.current_vote != None:
-            self.notify_vote("There's already a vote happening", sid)
+            self.notify_main("There's already a vote happening", sid)
             return
         if self.find_player(sid=sid) == None:
-            self.notify_vote("You aren't even playing yet", sid)
+            self.notify_main("You aren't even playing yet", sid)
             return
 
         st = str(text)
