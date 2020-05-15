@@ -275,13 +275,13 @@ class ClientRoom {
     // }.bind(this));
     // this.termMain.addCommand("room", "name", this.emit.bind(this, {this.ev:"name"}));
     this.termMain.addCommand("room", "name", n => this.nemit({name:n}));
-    this.termMain.addCommand("room", "play", () => this.nemit("play"));
-    this.termMain.addCommand("room", "kwalexadmin", g => this.nemit({kwalexadmin:g}));
+    this.termMain.addCommand("room", "ready", () => this.nemit("play"));
+    // this.termMain.addCommand("room", "kwalexadmin", g => this.nemit({kwalexadmin:g}));
     this.termMain.addCommand("room", "ping", () => this.nemit("ping"));
     this.termMain.addCommand("room", "watch", () => this.nemit("watch"))
     // this.termMain.addCommand("room", "callvote", (t,s) => this.nemit({callvote:{type:t, text:s}}));
     // this.termMain.addCommand("room", "callvote", (t,s) => console.log(t,s));
-    this.termMain.addCommand("room", "game", g => this.nemit({gamevote:g}))
+    this.termMain.addCommand("room", "play", g => this.nemit({gamevote:g}))
     this.termMain.addCommand("room", "vote", v => this.nemit({vote:v}));
 
     this.termMain.addCommand("room", "poll", t => this.nemit({poll:t}));
@@ -396,9 +396,14 @@ class ClientRoom {
   // }
   updateDisplay(data) {
     // console.log(data)
-    this.termRoom.term.clear()
-    this.termRoom.echo("Waiting: " + data.watching.join(", "));
-    this.termRoom.echo("Playing: " + data.playing.join(", "));
+    this.termRoom.term.clear();
+    let gev = data.game;
+    var kp = "Ready";
+    if (gev) kp = "Playing";
+    var kw = "Waiting";
+    if (gev) kw = "Watching";
+    this.termRoom.echo(kw + ": " + data.watching.join(", "));
+    this.termRoom.echo(kp + ": " + data.playing.join(", "));
   }
   voteData(data) {
     this.termVote.term.clear()

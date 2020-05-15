@@ -283,6 +283,8 @@ class Room:
             for cp in self.playing:
                 self.emit_start_game(cp.sid)
         self.game.start()
+        self.emit_display()
+
 
     def emit_start_game(self, sid):
         gamename = self.game_ev
@@ -306,7 +308,8 @@ class Room:
 
     def get_emit_data(self):
         output = {"playing":[cp.name for cp in self.playing],
-                "watching":[cp.name for cp in self.watching]}
+                "watching":[cp.name for cp in self.watching],
+                "game":self.game.ev if self.game else None}
         return output
 
     def emit_display(self):

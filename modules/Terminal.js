@@ -89,6 +89,13 @@ class Terminal {
   }
   addCommand(mode, command, fn) {
     if (this.cDict[mode] == undefined) this.cDict[mode] = [];
+    const nc = new Command(command, fn)
+    for (let i=0; i < this.cDict[mode].length; i++) {
+      if (nc.commandArray[0] == this.cDict[mode][i].commandArray) {
+        console.log("duplicate found, not adding")
+        return
+      }
+    }
     this.cDict[mode].push(new Command(command, fn));
     console.log("addCommand", this)
   }
