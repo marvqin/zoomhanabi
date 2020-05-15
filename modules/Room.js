@@ -1,6 +1,7 @@
 // var Player = require('./Player').Player;
 import {Player} from "./Player.js";
 import {ServerSkull, ClientSkull} from "./Skull.js";
+import {Ezgame} from "../js/Ezgame.js"
 // import {ServerModule, ClientModule} from "./Module.js"
 // var ServerModule = require('./Module').ServerModule;
 // var ClientModule = require('./Module').ClientModule;
@@ -90,6 +91,7 @@ class ServerRoom {
   }
   startGame(game) {
     if (game == "skull") this.game = new ServerSkull(this);
+    else if (game == "ezgame") this.game = new Ezgame(this);
     if (this.game) {
       // this.game.emitData()
       for (var s of this.getSockets()) {
@@ -317,7 +319,10 @@ class ClientRoom {
   activate() {
     // this.termMain.push(this.termHandler.bind(this));
     // this.termMain.term.set_interpreter(this.termHandler.bind(this));
+    // console.log("should activate")
     this.termMain.mode = "room"
+    this.termMain.term.clear();
+    // this.termMain.echo("prompt should change");
     this.termMain.term.set_prompt("Room> ");
     this.termMain.term.focus(true);
     this.termVote.mode = "room"
@@ -341,6 +346,7 @@ class ClientRoom {
       this.startGame(...data);
     }
     if (event == "endGame") {
+      console.log("endGame received")
       this.game.deactivate();
       this.socket.removeAllListeners(this.game.ev);
       this.game = undefined;
@@ -366,6 +372,7 @@ class ClientRoom {
   startGame(ev, game, ...data) {
     // this.deactivate();
     if (game == "skull") this.game = new ClientSkull(this.socket, this.termMain, this.termSide, ...data);
+    if (game == "ezgame") this.game = new Ezgame(this.socket, this.termMain, this.termSide, ...data);
     // this.deactivate();
     // this.game.updateDisplay(emitData)
     this.socket.on(this.game.ev, this.game.ioHandler.bind(this.game))

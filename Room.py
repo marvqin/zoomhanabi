@@ -1,6 +1,7 @@
 import eventlet
 
 from Skull import ServerSkull
+from Ezgame import Ezgame
 from Vote import Vote
 
 class Player:
@@ -25,6 +26,7 @@ class Room:
         self.proposed_game = None
         self.game_dict = {}
         self.game_dict["skull"] = ServerSkull
+        self.game_dict["ezgame"] = Ezgame
 
 
     def on_connect(self, sid, environ):
@@ -274,6 +276,9 @@ class Room:
         if gamename == "skull":
             self.game_ev = gamename
             self.game = ServerSkull(self);
+        elif gamename == "ezgame":
+            self.game_ev = gamename
+            self.game = Ezgame(self);
         if self.game:
             for cp in self.playing:
                 self.emit_start_game(cp.sid)
