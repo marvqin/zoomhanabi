@@ -44,7 +44,7 @@ class Ezgame:
         self.room = room
         self.players = room.playing
         self.n = len(self.players)
-        self.end_score = 8
+        self.end_score = 100
         self.round = None
         self.shotClock = ShotClock(self.end_round)
         self.cachedEmitData = None
