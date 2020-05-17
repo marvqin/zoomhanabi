@@ -139,8 +139,10 @@ class Ezgame {
     if (d["is_over"] == false) {
       const t = Math.round((d["scT"] - Date.now())/1000) - 1;
       this.termMain.promptCountdown(t)
+      this.termSide.countdown(t)
     } else {
       this.termMain.endPromptCountdown()
+      this.termSide.endCountdown()
     }
     // rt.echo(d["phase"]);
     // rt.echo(d["cBid"]);

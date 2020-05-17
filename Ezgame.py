@@ -72,6 +72,8 @@ class Ezgame:
         self.n = len(self.players)
         self.ai_players = [AINines(), AIFives(), AIRandom(), AI789()]
         self.ai_names = ["ai_rand", "ai_highs", "ai_fives", "ai_nines"]
+        self.ai_players = []
+        self.ai_names = []
         self.totaln = self.n + len(self.ai_players)
         self.end_score = 100
         self.round = None
