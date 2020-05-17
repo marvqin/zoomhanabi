@@ -91,7 +91,7 @@ class Terminal {
     if (this.cDict[mode] == undefined) this.cDict[mode] = [];
     const nc = new Command(command, fn)
     for (let i=0; i < this.cDict[mode].length; i++) {
-      if (nc.commandArray[0] == this.cDict[mode][i].commandArray) {
+      if (nc.commandArray[0] == this.cDict[mode][i].commandArray[0]) {
         console.log("duplicate found, not adding")
         return
       }
