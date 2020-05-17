@@ -3,6 +3,8 @@ import time
 import eventlet
 import collections
 
+random.seed()
+
 class ShotClock:
     def __init__(self, cb):
         # self.ezgame = ezgame
@@ -30,41 +32,76 @@ class ShotClock:
         self.cb()
 
 
+class AIPlayer:
+    def choose(self, data=None):
+        pass
+
+class AINines:
+    def choose(self, data=None):
+        return 9
+
+class AIFives:
+    def choose(self, data=None):
+        return 5
+
+class AIRandom:
+    def choose(self, data=None):
+        return random.randint(1,9)
+
+class AI789:
+    def choose(self, data=None):
+        return random.randint(7,9)
+
+
+
+
 
 class Round:
-    def __init__(self, players):
+    def __init__(self, players, ai_choices):
         self.players = players
         self.choices = [None for p in self.players]
-
+        self.ai_choices = ai_choices
+        # [ap.choose() for ap in self.ai_players]
 
 
 class Ezgame:
     def __init__(self, room):
-        self.ev = "ezgame"
+        self.ev = "nines"
         self.room = room
         self.players = room.playing
         self.n = len(self.players)
+        self.ai_players = [AINines(), AIFives(), AIRandom(), AI789()]
+        self.ai_names = ["ai_rand", "ai_highs", "ai_fives", "ai_nines"]
+        self.totaln = self.n + len(self.ai_players)
         self.end_score = 100
         self.round = None
         self.shotClock = ShotClock(self.end_round)
         self.cachedEmitData = None
-        self.points = [0 for p in self.players]
-        self.history_strings = ["" for p in self.players]
+        self.points = [0 for i in range(self.totaln)]
+        self.history_strings = ["" for i in range(self.totaln)]
         self.is_over = False
+
         self.start_round()
 
 
     def start_round(self):
-        self.round = Round(self.players)
+        aic = [ap.choose() for ap in self.ai_players]
+        self.round = Round(self.players, aic)
         self.shotClock.reset()
         self.emit()
         # self.informInitial()
 
 
+    # def run_ai(self):
+    #     for ap in self.ai_players:
+    #
+
     def end_round(self):
         winner = None
         r = self.round
-        actual_choices = [c if c != None else 0 for c in r.choices]
+        p_choices = [c if c != None else 0 for c in r.choices]
+        actual_choices = p_choices
+        actual_choices.extend(r.ai_choices)
         counter = collections.Counter(actual_choices)
         for i,c in enumerate(actual_choices):
             n = counter[c]
@@ -223,8 +260,10 @@ class Ezgame:
         ret["history_strings"] = self.history_strings
         ret["points"] = self.points
         public_choices = ["X" for i in range(self.n)] if self.is_over else ["N" if c != None else "_" for c in self.round.choices]
+        public_choices.extend(["X" if self.is_over else "N" for i in range(len(self.ai_players))])
         ret["public_choices"] = public_choices
         pNames = [cp.name for cp in self.players]
+        pNames.extend(self.ai_names)
         ret["pN"] = pNames
         ret["scT"] = self.shotClock.endTime*1000
         ret["is_over"] = self.is_over

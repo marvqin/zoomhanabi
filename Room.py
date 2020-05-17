@@ -26,7 +26,7 @@ class Room:
         self.proposed_game = None
         self.game_dict = {}
         self.game_dict["skull"] = ServerSkull
-        self.game_dict["ezgame"] = Ezgame
+        self.game_dict["nines"] = Ezgame
 
 
     def on_connect(self, sid, environ):
@@ -276,7 +276,7 @@ class Room:
         if gamename == "skull":
             self.game_ev = gamename
             self.game = ServerSkull(self);
-        elif gamename == "ezgame":
+        elif gamename == "nines":
             self.game_ev = gamename
             self.game = Ezgame(self);
         if self.game:

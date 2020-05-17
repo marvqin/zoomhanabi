@@ -372,7 +372,7 @@ class ClientRoom {
   startGame(ev, game, ...data) {
     // this.deactivate();
     if (game == "skull") this.game = new ClientSkull(this.socket, this.termMain, this.termSide, ...data);
-    if (game == "ezgame") this.game = new Ezgame(this.socket, this.termMain, this.termSide, ...data);
+    if (game == "nines") this.game = new Ezgame(this.socket, this.termMain, this.termSide, ...data);
     // this.deactivate();
     // this.game.updateDisplay(emitData)
     this.socket.on(this.game.ev, this.game.ioHandler.bind(this.game))

@@ -2,7 +2,7 @@ class Ezgame {
   constructor(socket, termMain, termSide, name, pIndex, dispData) {
     // super(io, "skull");
     this.socket = socket;
-    this.ev = "ezgame";
+    this.ev = "nines";
     this.termMain = termMain;
     this.termSide = termSide;
 
