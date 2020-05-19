@@ -12,6 +12,7 @@ class ShotClock:
         self.handle = None
         # self.playerIndex = None
         self.maxTime = 25 # s
+        # self.maxTime = 5
         self.endTime = None
 
 
@@ -49,8 +50,19 @@ class AIRandom:
         return random.randint(1,9)
 
 class AI789:
+    def __init__(self):
+        self.n = 0
     def choose(self, data=None):
         return random.randint(7,9)
+
+class AI789Cycle:
+    def __init__(self):
+        self.n = -1
+
+
+    def choose(self, data=None):
+        self.n += 1
+        return (self.n % 3) + 7
 
 
 
@@ -72,8 +84,8 @@ class Ezgame:
         self.n = len(self.players)
         self.ai_players = [AINines(), AIFives(), AIRandom(), AI789()]
         self.ai_names = ["ai_rand", "ai_highs", "ai_fives", "ai_nines"]
-        self.ai_players = []
-        self.ai_names = []
+        self.ai_players = [AINines(), AI789Cycle()]
+        self.ai_names = ["ai_rand", "ai_highs"]
         self.totaln = self.n + len(self.ai_players)
         self.end_score = 100
         self.round = None
