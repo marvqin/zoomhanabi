@@ -50,21 +50,59 @@ class AIRandom:
         return random.randint(1,9)
 
 class AI789:
-    def __init__(self):
-        self.n = 0
     def choose(self, data=None):
         return random.randint(7,9)
 
 class AI789Cycle:
     def __init__(self):
         self.n = -1
-
-
     def choose(self, data=None):
         self.n += 1
         return (self.n % 3) + 7
 
+class PowerupManager:
+    def __init__(self):
+        self.price_increase = 7
+        self.price_decrease = 2
+        self.prices = collections.OrderedDict()
+        self.prices["unlock19"] = 15
+        self.prices["instant-unlock19"] = 20
+        self.prices["steal"] = 25
+        self.prices["instant-steal"] = 35
+        self.prices["invert"] = 20
+        self.prices["instant-invert"] = 25
 
+        self.global_powerups = ["invert", "instant-invert"]
+        self.display_prices()
+
+    def display_prices(self):
+        self.powerup_names = list(self.prices.keys())
+        self.powerup_prices = [str(self.prices[k]) for k in self.powerup_names]
+
+    def buy(self, name):
+        try:
+            n = str(name)
+        except:
+            print("bad buy caught")
+            return "","bad",0
+
+        if n in self.prices:
+            p = self.prices[n]
+            # self.prices[n] += self.price_increase
+            if n in self.global_powerups:
+                return n,"global",p
+            else:
+                return n,"local",p
+        else:
+            return n,"bad",0
+
+    def update(self, purchase_numbers):
+        for k,v in self.prices.items():
+            self.prices[k] -= self.price_decrease
+
+        for k,v in purchase_numbers.items():
+            self.prices[k] += self.price_increase*v
+        self.display_prices()
 
 
 
@@ -73,6 +111,11 @@ class Round:
         self.players = players
         self.choices = [None for p in self.players]
         self.ai_choices = ai_choices
+        self.player_powerups = [[] for i in range(len(self.players))]
+        self.global_powerups = []
+        self.powerup_debt = [0 for i in range(len(self.players))]
+        self.delayed_notifications = []
+        self.purchase_number = collections.defaultdict(lambda: 0)
         # [ap.choose() for ap in self.ai_players]
 
 
@@ -94,13 +137,26 @@ class Ezgame:
         self.points = [0 for i in range(self.totaln)]
         self.history_strings = ["" for i in range(self.totaln)]
         self.is_over = False
-
+        self.pm = PowerupManager()
         self.start_round()
 
 
     def start_round(self):
+        oldround = self.round
         aic = [ap.choose() for ap in self.ai_players]
         self.round = Round(self.players, aic)
+
+        if oldround != None:
+            nglobals = ["instant-" + s for s in oldround.global_powerups if ("instant-" not in s) ]
+            self.round.global_powerups.extend(nglobals)
+
+            for i,ps in enumerate(oldround.player_powerups):
+                npl = ["instant-" + s for s in ps if "instant-" not in s]
+                self.round.player_powerups[i].extend(npl)
+
+            print(self.round.global_powerups)
+            print(self.round.player_powerups)
+
         self.shotClock.reset()
         self.emit()
         # self.informInitial()
@@ -111,28 +167,55 @@ class Ezgame:
     #
 
     def end_round(self):
+        for i,debt in enumerate(self.round.powerup_debt):
+            self.points[i] -= debt
+            self.room.notify_main("you spent: {}".format(debt), self.getSocket(i))
+        print("local ps: ", self.round.player_powerups)
+        print("global ps: ", self.round.global_powerups)
         winner = None
         r = self.round
         p_choices = [c if c != None else 0 for c in r.choices]
         actual_choices = p_choices
         actual_choices.extend(r.ai_choices)
         counter = collections.Counter(actual_choices)
+
+        n_invert = self.round.global_powerups.count("instant-invert")
+        steal_choices = [c for c,ps in zip(r.choices, r.player_powerups) if "instant-steal" in ps]
+        print("steal_choices: ",steal_choices)
+        steal_counter = collections.Counter(steal_choices)
         for i,c in enumerate(actual_choices):
+            steal_n = steal_counter[c]
             n = counter[c]
-            pts = int(c/n)
+
+            if steal_n > 0:
+                if i < len(self.round.player_powerups) and "instant-steal" in self.round.player_powerups[i]:
+                    pts = int(c/steal_n)
+                else:
+                    pts = 0
+            else:
+                pts = int(c/n)
+            pts = pts * (-1)**n_invert
             print(i,c,pts)
             self.points[i] += pts
+            self.room.notify_main("you got: {}".format(pts), self.getSocket(i))
             if self.points[i] >= self.end_score:
                 winner = i
             chist = self.history_strings[i]
-            nhist = chist + str(c)
+            nhist = chist + chr(9311+c)
+            # nhist = chist + str(c)
             self.history_strings[i] = nhist[-8:]
 
 
         if winner != None:
             self.end_game(winner)
+            return
 
         if self.is_over == False:
+            self.pm.update(self.round.purchase_number)
+            dns = self.round.delayed_notifications
+            for dn in dns:
+                self.room.notify_main(dn)
+
             self.start_round()
 
 
@@ -147,7 +230,10 @@ class Ezgame:
 
 
     def getSocket(self, i):
-        return self.players[i].sid
+        if i >= len(self.players):
+            return -1
+        else:
+            return self.players[i].sid
 
     def get_index(self, sid):
         for i in range(self.n):
@@ -164,6 +250,8 @@ class Ezgame:
             d = data[self.ev]
             if "choose" in d:
                 self.choose(sid, d["choose"])
+            if "buy" in d:
+                self.buy(sid, d["buy"])
             # elif "skull" in sd:
             #     self.play(i, "skull")
             # elif "bid" in sd:
@@ -174,17 +262,55 @@ class Ezgame:
             #     self.guess(i, sd["guess"])
 
 
+    def buy(self, sid, name):
+        i = self.get_index(sid)
+        if i == None:
+            self.room.notify_main("what is this?", sid)
+            return
+        pname = self.players[i].name
+        s, code, price = self.pm.buy(name)
+        bought = False
+        if code == "local":
+            self.round.player_powerups[i].append(s)
+            if "instant-" not in s:
+                self.round.delayed_notifications.append("{} bought {}".format(pname, s))
+            self.round.purchase_number[s] += 1
+            bought = True
+        elif code == "global":
+            self.round.global_powerups.append(s)
+            if "instant-" not in s:
+                self.round.delayed_notifications.append("{} bought {}".format(pname, s))
+            self.round.purchase_number[s] += 1
+            bought = True
+        else:
+            self.room.notify_main("trash powerup", sid)
+            return
+
+        self.round.powerup_debt[i] += price
+        if "instant-" in s:
+            self.room.notify_main("{} is active immediately".format(s), sid)
+        else:
+            self.room.notify_main("{} will activate next turn".format(s), sid)
+            # self.room.notify_main("{} bought {} for next turn".format(self.players[i].name, s))
+
     def choose(self, sid, choice):
+        i = self.get_index(sid)
+        if i == None:
+            return
         try:
             sc = int(choice)
         except:
             self.room.notify_main("bad choice", sid)
             return
 
-        if sc > 9 or sc < 0:
-            self.room.notify_main("choice not in range", sid)
-            return
-        i = self.get_index(sid)
+        if sc > 9 and sc < 20:
+            if "instant-unlock19" not in self.round.player_powerups[i]:
+                self.room.notify_main("you need to buy the powerup", sid)
+                return
+        elif sc > 9 or sc < 0:
+                self.room.notify_main("choice not in range", sid)
+                return
+
         if self.round.choices[i] == None:
             self.round.choices[i] = sc
         else:
@@ -281,6 +407,10 @@ class Ezgame:
         ret["pN"] = pNames
         ret["scT"] = self.shotClock.endTime*1000
         ret["is_over"] = self.is_over
+
+        # pn = list(self.pm.prices.keys())
+        ret["powerup_names"] = self.pm.powerup_names
+        ret["powerup_prices"] = self.pm.powerup_prices
         # ret["pts"] = self.points
         # ret["phase"] = r.phase
         # ret["cp"] = r.cpIndex
