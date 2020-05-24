@@ -107,7 +107,7 @@ class PowerupManager:
 
 
 class Round:
-    def __init__(self, players, ai_choices):
+    def __init__(self, players, ai_choices, olddeltas):
         self.players = players
         self.choices = [None for p in self.players]
         self.ai_choices = ai_choices
@@ -116,6 +116,8 @@ class Round:
         self.powerup_debt = [0 for i in range(len(self.players))]
         self.delayed_notifications = []
         self.purchase_number = collections.defaultdict(lambda: 0)
+        self.deltas = [0 for i in range(len(self.players) + len(self.ai_choices))]
+        self.olddeltas = olddeltas
         # [ap.choose() for ap in self.ai_players]
 
 
@@ -144,7 +146,7 @@ class Ezgame:
     def start_round(self):
         oldround = self.round
         aic = [ap.choose() for ap in self.ai_players]
-        self.round = Round(self.players, aic)
+        self.round = Round(self.players, aic, oldround.deltas if oldround else None)
 
         if oldround != None:
             nglobals = ["instant-" + s for s in oldround.global_powerups if ("instant-" not in s) ]
@@ -169,6 +171,7 @@ class Ezgame:
     def end_round(self):
         for i,debt in enumerate(self.round.powerup_debt):
             self.points[i] -= debt
+            self.round.deltas[i] -= debt
             self.room.notify_main("you spent: {}".format(debt), self.getSocket(i))
         print("local ps: ", self.round.player_powerups)
         print("global ps: ", self.round.global_powerups)
@@ -197,6 +200,7 @@ class Ezgame:
             pts = pts * (-1)**n_invert
             print(i,c,pts)
             self.points[i] += pts
+            self.round.deltas[i] += pts
             self.room.notify_main("you got: {}".format(pts), self.getSocket(i))
             if self.points[i] >= self.end_score:
                 winner = i
@@ -204,6 +208,7 @@ class Ezgame:
             nhist = chist + chr(9311+c)
             # nhist = chist + str(c)
             self.history_strings[i] = nhist[-8:]
+            # self.deltas[i] = pts
 
 
         if winner != None:
@@ -411,6 +416,7 @@ class Ezgame:
         # pn = list(self.pm.prices.keys())
         ret["powerup_names"] = self.pm.powerup_names
         ret["powerup_prices"] = self.pm.powerup_prices
+        ret["deltas"] = [0 for i in range(self.totaln)] if self.round.olddeltas == None else self.round.olddeltas
         # ret["pts"] = self.points
         # ret["phase"] = r.phase
         # ret["cp"] = r.cpIndex

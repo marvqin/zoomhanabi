@@ -138,7 +138,7 @@ class Ezgame {
       // var isTurn;
       // if (d["cp"] == i) isTurn = "*";
       // else isTurn = " ";
-      var s = pNames[i].padStart(8, " ") + ": " + d["points"][i];
+      var s = pNames[i].padStart(8, " ") + ": " + d["points"][i] + "   (" + d["deltas"][i] + ")";
       // var s = isTurn + pNames[i].padStart(8, " ") + ": " + "C".repeat(d["cards"][i].length);
       // if (d["bids"][i] != 0 && d["status"][i]) {s += d["bids"][i];}
       // else if (!d["status"][i]) {s += "-";}
