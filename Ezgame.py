@@ -136,7 +136,7 @@ class Ezgame:
         self.ai_players = [AINines(), AI789Cycle()]
         self.ai_names = ["ai_rand", "ai_highs"]
         self.totaln = self.n + len(self.ai_players)
-        self.end_score = 30
+        self.end_score = 100
         self.round = None
         self.shotClock = ShotClock(self.end_round)
         self.cachedEmitData = None
