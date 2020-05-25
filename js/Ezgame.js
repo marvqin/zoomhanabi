@@ -7,7 +7,7 @@ class Ezgame {
     this.termSide = termSide;
 
     this.termMain.addCommand(this.ev, ["choose", "c"], c => this.emit({choose:c}));
-    // this.termMain.addCommand(this.ev, ["buy", "b"], b => this.emit({buy:b}));
+    this.termMain.addCommand(this.ev, ["buy", "b"], b => this.emit({buy:b}));
     // this.termMain.addCommand("skull", ["rose", "r"], () => this.emit("rose"));
     // this.termMain.addCommand("skull", ["skull", "s"], () => this.emit("skull"));
     //
@@ -131,13 +131,13 @@ class Ezgame {
       // else if (!d["status"][i]) {s += "-";}
       rt.echo(s);
     }
-    // rt.echo("\n\n*******Powerups*******\n\n")
-    // const pn = d["powerup_names"]
-    // const pp = d["powerup_prices"]
-    // console.log(pn, pp)
-    // for (var i=0; i < pn.length; i++) {
-    //   rt.echo( pn[i].padStart(16, " ") + ": " + pp[i])
-    // }
+    rt.echo("\n\n*******Powerups*******\n\n")
+    const pn = d["powerup_names"]
+    const pp = d["powerup_prices"]
+    console.log(pn, pp)
+    for (var i=0; i < pn.length; i++) {
+      rt.echo( pn[i].padStart(16, " ") + ": " + pp[i])
+    }
     rt.echo("\n\n*******Score*******\n\n");
     for (var i=0; i < pNames.length; i++) {
       // var isTurn;
