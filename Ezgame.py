@@ -107,7 +107,7 @@ class PowerupManager:
 
 
 class Round:
-    def __init__(self, players, ai_choices, olddeltas):
+    def __init__(self, players, ai_choices, olddeltas, old_debts, old_recap_strings):
         self.players = players
         self.choices = [None for p in self.players]
         self.ai_choices = ai_choices
@@ -118,6 +118,10 @@ class Round:
         self.purchase_number = collections.defaultdict(lambda: 0)
         self.deltas = [0 for i in range(len(self.players) + len(self.ai_choices))]
         self.olddeltas = olddeltas
+        self.old_recap_strings = old_recap_strings
+        self.recap_strings = []
+        self.old_debts = old_debts
+        self.debts = [0 for i in range(len(self.players))]
         # [ap.choose() for ap in self.ai_players]
 
 
@@ -132,7 +136,7 @@ class Ezgame:
         self.ai_players = [AINines(), AI789Cycle()]
         self.ai_names = ["ai_rand", "ai_highs"]
         self.totaln = self.n + len(self.ai_players)
-        self.end_score = 100
+        self.end_score = 30
         self.round = None
         self.shotClock = ShotClock(self.end_round)
         self.cachedEmitData = None
@@ -144,17 +148,29 @@ class Ezgame:
 
 
     def start_round(self):
+        self.room.emit_game("start_round")
         oldround = self.round
         aic = [ap.choose() for ap in self.ai_players]
-        self.round = Round(self.players, aic, oldround.deltas if oldround else None)
+        self.round = Round(self.players, aic, oldround.deltas if oldround else None, oldround.debts if oldround else None, oldround.recap_strings if oldround else [])
 
         if oldround != None:
             nglobals = ["instant-" + s for s in oldround.global_powerups if ("instant-" not in s) ]
             self.round.global_powerups.extend(nglobals)
+            for s in oldround.global_powerups:
+                if "instant-" in s:
+                    continue
+                else:
+                    self.round.recap_strings.append("someone had previously bought {}".format(s))
+            # self.round.old_recap_strings.append("{} used {}")
 
             for i,ps in enumerate(oldround.player_powerups):
                 npl = ["instant-" + s for s in ps if "instant-" not in s]
                 self.round.player_powerups[i].extend(npl)
+                for s in ps:
+                    if "instant-" in s:
+                        continue
+                    else:
+                        self.round.recap_strings.append("{} had previously bought {}".format(self.players[i].name, s))
 
             print(self.round.global_powerups)
             print(self.round.player_powerups)
@@ -171,8 +187,8 @@ class Ezgame:
     def end_round(self):
         for i,debt in enumerate(self.round.powerup_debt):
             self.points[i] -= debt
-            self.round.deltas[i] -= debt
-            self.room.notify_main("you spent: {}".format(debt), self.getSocket(i))
+            self.round.debts[i] -= debt
+            # self.room.notify_main("you spent: {}".format(debt), self.getSocket(i))
         print("local ps: ", self.round.player_powerups)
         print("global ps: ", self.round.global_powerups)
         winner = None
@@ -201,32 +217,37 @@ class Ezgame:
             print(i,c,pts)
             self.points[i] += pts
             self.round.deltas[i] += pts
-            self.room.notify_main("you got: {}".format(pts), self.getSocket(i))
+            # self.room.notify_main("you got: {}".format(pts), self.getSocket(i))
             if self.points[i] >= self.end_score:
                 winner = i
             chist = self.history_strings[i]
-            nhist = chist + chr(9311+c)
+            if c > 0:
+                nhist = chist + chr(9311+c)
+            else:
+                nhist = chist + chr(10060)
             # nhist = chist + str(c)
             self.history_strings[i] = nhist[-8:]
             # self.deltas[i] = pts
 
 
         if winner != None:
+            self.start_round()
             self.end_game(winner)
             return
 
         if self.is_over == False:
             self.pm.update(self.round.purchase_number)
+
             dns = self.round.delayed_notifications
+            self.start_round()
             for dn in dns:
                 self.room.notify_main(dn)
-
-            self.start_round()
 
 
     def end_game(self, w_index):
         print("end game: ", w_index)
         self.is_over = True
+        self.shotClock.stop()
         self.emit()
     # const pl = self.round.getPlayerIndex(winnerIndex);
         # self.emit()
@@ -294,6 +315,7 @@ class Ezgame:
         self.round.powerup_debt[i] += price
         if "instant-" in s:
             self.room.notify_main("{} is active immediately".format(s), sid)
+            self.round.recap_strings.append("{} bought {}".format(pname, s))
         else:
             self.room.notify_main("{} will activate next turn".format(s), sid)
             # self.room.notify_main("{} bought {} for next turn".format(self.players[i].name, s))
@@ -417,6 +439,8 @@ class Ezgame:
         ret["powerup_names"] = self.pm.powerup_names
         ret["powerup_prices"] = self.pm.powerup_prices
         ret["deltas"] = [0 for i in range(self.totaln)] if self.round.olddeltas == None else self.round.olddeltas
+        ret["recap_strings"] = self.round.old_recap_strings
+        ret["debts"] = [0 for i in range(self.totaln)] if self.round.old_debts == None else self.round.old_debts + [0]*len(self.ai_players)
         # ret["pts"] = self.points
         # ret["phase"] = r.phase
         # ret["cp"] = r.cpIndex

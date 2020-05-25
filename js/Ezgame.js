@@ -35,6 +35,11 @@ class Ezgame {
       this.termMain.echo("Your turn. played: " + JSON.stringify(data[1]) + " , available: " + JSON.stringify(data[2]));
       // this.termMain.promptCountdown(24)
     }
+    if (ev == "start_round") {
+      this.termMain.term.clear()
+
+      this.termMain.echo("Choose a number:")
+    }
     if (ev == "initialPhase") {
       this.termMain.term.clear();
       this.termMain.echo("Initial phase, play a card. available: " + JSON.stringify(data[2]));
@@ -138,12 +143,17 @@ class Ezgame {
       // var isTurn;
       // if (d["cp"] == i) isTurn = "*";
       // else isTurn = " ";
-      var s = pNames[i].padStart(8, " ") + ": " + d["points"][i] + "   (" + d["deltas"][i] + ")";
+      var s = pNames[i].padStart(8, " ") + ": " + d["points"][i] + "   (" + d["deltas"][i] + " " + d["debts"][i] + ")";
       // var s = isTurn + pNames[i].padStart(8, " ") + ": " + "C".repeat(d["cards"][i].length);
       // if (d["bids"][i] != 0 && d["status"][i]) {s += d["bids"][i];}
       // else if (!d["status"][i]) {s += "-";}
       rt.echo(s);
     }
+    rt.echo("\nRound recap:")
+    for (var rs of d["recap_strings"]) {
+      rt.echo(rs)
+    }
+    rt.echo("\n")
     if (d["is_over"] == false) {
       const t = Math.round((d["scT"] - Date.now())/1000) - 1;
       this.termMain.promptCountdown(t)
