@@ -11,7 +11,7 @@ class ShotClock:
         self.cb = cb
         self.handle = None
         # self.playerIndex = None
-        self.maxTime = 25 # s
+        self.maxTime = 30 # s
         # self.maxTime = 5
         self.endTime = None
 
