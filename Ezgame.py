@@ -65,12 +65,12 @@ class PowerupManager:
         self.price_increase = 7
         self.price_decrease = 2
         self.prices = collections.OrderedDict()
-        # self.prices["unlock19"] = 15
-        # self.prices["instant-unlock19"] = 20
+        self.prices["unlock19"] = 15
+        self.prices["instant-unlock19"] = 20
         self.prices["steal"] = 25
         self.prices["instant-steal"] = 35
-        # self.prices["invert"] = 20
-        # self.prices["instant-invert"] = 25
+        self.prices["invert"] = 20
+        self.prices["instant-invert"] = 25
 
         self.global_powerups = ["invert", "instant-invert"]
         self.display_prices()
@@ -135,6 +135,8 @@ class Ezgame:
         self.ai_names = ["ai_rand", "ai_highs", "ai_fives", "ai_nines"]
         self.ai_players = [AINines(), AI789Cycle()]
         self.ai_names = ["ai_rand", "ai_highs"]
+        self.ai_players = []
+        self.ai_names = []
         self.totaln = self.n + len(self.ai_players)
         self.end_score = 100
         self.round = None
@@ -208,7 +210,7 @@ class Ezgame:
 
             if steal_n > 0:
                 if i < len(self.round.player_powerups) and "instant-steal" in self.round.player_powerups[i]:
-                    pts = int(c/steal_n)
+                    pts = int(c*(counter[c] + steal_counter[c])/steal_n)
                 else:
                     pts = 0
             else:
