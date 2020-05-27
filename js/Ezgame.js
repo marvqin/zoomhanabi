@@ -151,13 +151,14 @@ class Ezgame {
     }
     rt.echo("\nLast round recap:")
     for (var rs of d["recap_strings"]) {
-      rt.echo(rs)
+      rt.echo("    " + rs)
     }
     rt.echo("\n")
-    rt.echo("Active this round: \n")
+    rt.echo("Active this round: ")
     for (var dn of d["dns"]) {
-      rt.echo(dn)
+      rt.echo("    " + dn)
     }
+    rt.echo("\n")
     if (d["is_over"] == false) {
       const t = Math.round((d["scT"] - Date.now())/1000) - 1;
       this.termMain.promptCountdown(t)
