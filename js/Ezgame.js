@@ -149,11 +149,15 @@ class Ezgame {
       // else if (!d["status"][i]) {s += "-";}
       rt.echo(s);
     }
-    rt.echo("\nRound recap:")
+    rt.echo("\nLast round recap:")
     for (var rs of d["recap_strings"]) {
       rt.echo(rs)
     }
     rt.echo("\n")
+    rt.echo("Active this round: \n")
+    for (var dn of d["dns"]) {
+      rt.echo(dn)
+    }
     if (d["is_over"] == false) {
       const t = Math.round((d["scT"] - Date.now())/1000) - 1;
       this.termMain.promptCountdown(t)

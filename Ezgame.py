@@ -107,7 +107,7 @@ class PowerupManager:
 
 
 class Round:
-    def __init__(self, players, ai_choices, olddeltas, old_debts, old_recap_strings):
+    def __init__(self, players, ai_choices, olddeltas, old_debts, old_recap_strings, old_dn):
         self.players = players
         self.choices = [None for p in self.players]
         self.ai_choices = ai_choices
@@ -122,6 +122,7 @@ class Round:
         self.recap_strings = []
         self.old_debts = old_debts
         self.debts = [0 for i in range(len(self.players))]
+        self.old_delayed_notifications = old_dn
         # [ap.choose() for ap in self.ai_players]
 
 
@@ -153,7 +154,7 @@ class Ezgame:
         self.room.emit_game("start_round")
         oldround = self.round
         aic = [ap.choose() for ap in self.ai_players]
-        self.round = Round(self.players, aic, oldround.deltas if oldround else None, oldround.debts if oldround else None, oldround.recap_strings if oldround else [])
+        self.round = Round(self.players, aic, oldround.deltas if oldround else None, oldround.debts if oldround else None, oldround.recap_strings if oldround else [], oldround.delayed_notifications if oldround else [])
 
         if oldround != None:
             nglobals = ["instant-" + s for s in oldround.global_powerups if ("instant-" not in s) ]
@@ -223,12 +224,16 @@ class Ezgame:
             if self.points[i] >= self.end_score:
                 winner = i
             chist = self.history_strings[i]
-            if c > 0:
-                nhist = chist + chr(9311+c)
-            else:
-                nhist = chist + chr(10060)
+            # if c > 0:
+            #     nhist = chist + chr(9311+c)
+            # else:
+            #     nhist = chist + chr(10060)
+            # if c > 0:
+            nhist = chist + "{:02d} ".format(c)
+            # else:
+                # nhist = chist + chr(10060)
             # nhist = chist + str(c)
-            self.history_strings[i] = nhist[-8:]
+            self.history_strings[i] = nhist[-24:]
             # self.deltas[i] = pts
 
 
@@ -242,8 +247,8 @@ class Ezgame:
 
             dns = self.round.delayed_notifications
             self.start_round()
-            for dn in dns:
-                self.room.notify_main(dn)
+            # for dn in dns:
+            #     self.room.notify_main(dn)
 
 
     def end_game(self, w_index):
@@ -443,6 +448,7 @@ class Ezgame:
         ret["deltas"] = [0 for i in range(self.totaln)] if self.round.olddeltas == None else self.round.olddeltas
         ret["recap_strings"] = self.round.old_recap_strings
         ret["debts"] = [0 for i in range(self.totaln)] if self.round.old_debts == None else self.round.old_debts + [0]*len(self.ai_players)
+        ret["dns"] = self.round.old_delayed_notifications
         # ret["pts"] = self.points
         # ret["phase"] = r.phase
         # ret["cp"] = r.cpIndex
