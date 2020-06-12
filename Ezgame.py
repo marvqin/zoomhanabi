@@ -63,12 +63,12 @@ class AI789Cycle:
 class PowerupManager:
     def __init__(self):
         self.price_increase = 7
-        self.price_decrease = 2
+        self.price_decrease = 4
         self.prices = collections.OrderedDict()
-        # self.prices["unlock19"] = 15
-        # self.prices["instant-unlock19"] = 20
-        # self.prices["steal"] = 25
-        # self.prices["instant-steal"] = 35
+        self.prices["unlock19"] = 15
+        self.prices["instant-unlock19"] = 20
+        self.prices["steal"] = 25
+        self.prices["instant-steal"] = 35
         self.prices["invert"] = 20
         self.prices["instant-invert"] = 25
 
